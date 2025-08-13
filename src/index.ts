@@ -29,6 +29,6 @@ export const com = defineComponent({
     // this.name; // type: string | undefined
     // this.msg; // type: string
     // this.count; // type: number
-    this.FirstName = 'Mazey';
+    this.FirstName = 'Cheng';
   },
 });

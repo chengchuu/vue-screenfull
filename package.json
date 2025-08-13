@@ -1,6 +1,6 @@
 {
   "name": "vue-screenfull",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Vue3 component for Fullscreen.",
   "main": "lib/index.cjs.js",
   "module": "lib/index.esm.js",
@@ -17,18 +17,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mazeyqian/vue-screenfull.git"
+    "url": "git+https://github.com/chengchuu/vue-screenfull.git"
   },
   "keywords": [
     "JavaScript",
     "Function"
   ],
-  "author": "MazeyQian",
+  "author": "Cheng",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mazeyqian/vue-screenfull/issues"
+    "url": "https://github.com/chengchuu/vue-screenfull/issues"
   },
-  "homepage": "https://github.com/mazeyqian/vue-screenfull",
+  "homepage": "https://github.com/chengchuu/vue-screenfull",
   "devDependencies": {
     "@babel/core": "7.8.4",
     "@babel/plugin-proposal-class-properties": "7.10.4",

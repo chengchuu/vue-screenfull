@@ -6,7 +6,7 @@
 [npm-image]: https://img.shields.io/npm/v/vue-screenfull
 [npm-url]: https://npmjs.org/package/vue-screenfull
 [l-image]: https://img.shields.io/npm/l/vue-screenfull
-[l-url]: https://github.com/mazeyqian/vue-screenfull
+[l-url]: https://github.com/chengchuu/vue-screenfull
 
 A **Vue3+** component for Fullscreen.
 

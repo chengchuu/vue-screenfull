@@ -1,4 +1,4 @@
-# File&Cache
+# File & Cache
 .DS_Store
 node_modules/
 dist/
@@ -12,6 +12,7 @@ doc/
 .sass-cache/
 undefined/
 temp/
+package-lock.json
 
 # Editor directories and files
 .idea
