@@ -1,6 +1,6 @@
 {
   "name": "vue-screenfull",
-  "version": "2.1.6",
+  "version": "1.0.2",
   "description": "A TypeScript template for publishing npm packages in CJS, ESM, and browser formats.",
   "main": "lib/index.cjs.js",
   "module": "lib/index.esm.js",
