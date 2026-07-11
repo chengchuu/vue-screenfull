@@ -1,23 +1,44 @@
-# File & Cache
-.DS_Store
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-test/unit/coverage
-test/e2e/reports
-selenium-debug.log
-doc/
+dist-dev/
+docs/
+lib/
+coverage/
+
+# Test reports
+test/unit/coverage/
+test/e2e/reports/
+
+# Cache folders
 .sass-cache/
-undefined/
 temp/
-package-lock.json
+undefined/
 
 # Editor directories and files
-.idea
-.vscode
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment configuration files
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+selenium-debug.log*
+
+# Package lock files
+package-lock.json
+pnpm-lock.yaml
+pnpm-workspace.yaml
