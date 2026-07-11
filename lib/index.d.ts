@@ -1,5 +1,17 @@
-export declare const com: import("vue").DefineComponent<{}, {}, {
-    count: number;
-    FirstName: string;
-}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, import("vue").EmitsOptions, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<import("vue").ExtractPropTypes<{}>>, {}>;
-//# sourceMappingURL=index.d.ts.map
+/**
+ * @author Cheng
+ */
+/**
+ * Foo foo foo, Foo description.
+ *
+ * @returns {boolean} true or false
+ */
+declare function foo(): boolean;
+/**
+ * Bar bar bar, Bar description.
+ *
+ * @returns {boolean} true or false
+ */
+declare function bar(): boolean;
+
+export { bar, foo };

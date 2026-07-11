@@ -1,40 +1,137 @@
-# Vue Screenfull
+> **Note:** This package is a working npm library template. Use it as a starting point and replace
+> the sample package identity and API before publishing your own library.
 
-[![NPM version][npm-image]][npm-url]
-[![l][l-image]][l-url]
+# vue-screenfull
 
-[npm-image]: https://img.shields.io/npm/v/vue-screenfull
-[npm-url]: https://npmjs.org/package/vue-screenfull
-[l-image]: https://img.shields.io/npm/l/vue-screenfull
-[l-url]: https://github.com/chengchuu/vue-screenfull
+[![npm version][npm-version-image]][npm-url]
+[![license][license-image]][license-url]
 
-A **Vue3+** component for Fullscreen.
+[npm-version-image]: https://img.shields.io/npm/v/vue-screenfull.svg
+[npm-url]: https://www.npmjs.com/package/vue-screenfull
+[license-image]: https://img.shields.io/npm/l/vue-screenfull.svg
+[license-url]: https://github.com/chengchuu/vue-screenfull/blob/main/LICENSE
 
-## Install
+A TypeScript template for publishing npm packages in CJS, ESM, and browser formats.
 
-You can get vue-screenfull via [npm](https://www.npmjs.com/package/vue-screenfull).
+## Installation
 
+Use vue-screenfull via [npm](https://www.npmjs.com/package/vue-screenfull).
+
+```bash
+npm install vue-screenfull
 ```
-npm install vue-screenfull --save
+
+Of course, you can also download this file and serve it yourself. The file locates at the `lib/vue-screenfull.min.js`.
+
+## Quick Start
+
+```ts
+import { createGreeting } from "vue-screenfull";
+
+const message = createGreeting("Cheng");
+
+console.log(message); // "Hello, Cheng!"
 ```
 
 ## Usage
 
-I am Coding it...
+### ESM And TypeScript
 
-```
-// pass
+Import runtime values and public types from the package root:
+
+```ts
+import {
+  createGreeting,
+  packageInfo,
+  type CreateGreetingOptions,
+} from "vue-screenfull";
+
+const options: CreateGreetingOptions = {
+  punctuation: ".",
+};
+
+console.log(createGreeting("community", options)); // "Hello, community."
+console.log(packageInfo.name); // "vue-screenfull"
 ```
 
-## Develop
+### CommonJS
 
+```js
+const { createGreeting, packageInfo } = require("vue-screenfull");
+
+console.log(createGreeting("CommonJS")); // "Hello, CommonJS!"
+console.log(packageInfo.version);
 ```
-# dev
+
+### Browser Script
+
+Load the IIFE bundle directly from a CDN when a package manager or bundler is not available:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/vue-screenfull/lib/vue-screenfull.min.js"></script>
+<script>
+  const { createGreeting } = MAZEY_NPM_TEMPLATE;
+
+  document.querySelector("#message").textContent = createGreeting("browser");
+</script>
+```
+
+Pin an exact package version in the CDN URL for production applications.
+
+## API Reference
+
+### `createGreeting(name, options?)`
+
+Creates a greeting and returns it as a string.
+
+| Parameter             | Type                    | Description                                    |
+| --------------------- | ----------------------- | ---------------------------------------------- |
+| `name`                | `string`                | Name included in the greeting.                 |
+| `options`             | `CreateGreetingOptions` | Optional output formatting.                    |
+| `options.punctuation` | `string`                | Final punctuation. Defaults to an exclamation. |
+
+Whitespace is trimmed from `name`. A blank name falls back to `"friend"`.
+
+```ts
+createGreeting("Cheng"); // "Hello, Cheng!"
+createGreeting("  team  ", { punctuation: "." }); // "Hello, team."
+createGreeting("   "); // "Hello, friend!"
+```
+
+### `packageInfo`
+
+Exposes the package name and version:
+
+```ts
+interface PackageInfo {
+  name: string;
+  version: string;
+}
+```
+
+## Package Formats
+
+| Consumer           | Package field | Published file                  |
+| ------------------ | ------------- | ------------------------------- |
+| ESM and bundlers   | `module`      | `lib/index.esm.js`              |
+| Node.js CommonJS   | `main`        | `lib/index.cjs.js`              |
+| Browser/CDN        | `unpkg`       | `lib/vue-screenfull.min.js` |
+| TypeScript tooling | `types`       | `lib/index.d.ts`                |
+
+Source maps are generated for all JavaScript bundles. The root declarations also load the
+published browser type augmentations from `lib/global.d.ts`.
+
+## Development
+
+Repository workflows use Node.js 22. Install dependencies and start the example development server:
+
+```bash
+npm install
 npm run dev
-
-# build
-npm run build
-
-# documentation
-npm run docs
 ```
+
+The example is served at <http://localhost:8080> and imports the public API directly from `src`.
+
+## License
+
+This project is released under the [MIT License][license-url].
