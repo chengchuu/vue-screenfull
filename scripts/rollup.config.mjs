@@ -23,7 +23,7 @@ const banner =
   ` * (c) 2018-${new Date().getFullYear()} Cheng https://www.npmjs.com/package/vue-screenfull\n` +
   " * Released under the MIT License.\n" +
   " */";
-const external = [];
+const external = ["vue"];
 
 const clean = () => ({
   name: "clean-lib",
@@ -49,7 +49,7 @@ const plugins = [
 ];
 const iifePlugins = [];
 const typingDtsConf = {
-  input: _resolve("../src/typing.d.ts"),
+  input: _resolve("../src/typing.ts"),
   // https://rollupjs.org/guide/en/#outputformat
   output: [
     {
@@ -70,7 +70,7 @@ const indexDtsConf = {
     },
   ],
   plugins: [dts()],
-  external: [],
+  external,
 };
 const globalDtsConf = {
   input: _resolve("../types/global.d.ts"),
@@ -78,6 +78,7 @@ const globalDtsConf = {
     {
       file: _resolve("../lib/global.d.ts"),
       format: "es",
+      footer: "export {};",
     },
   ],
   plugins: [dts()],
@@ -91,7 +92,8 @@ if (debugMode !== "open") {
     terser({
       format: {
         // https://github.com/terser/terser#format-options
-        comments: /^!\n\s\*\svue-screenfull/, // `'some'`/`false` to omit comments in the output
+        comments: /^!\n\s\*\svue-screenfull|[@#]__PURE__/, // Preserve license and tree-shaking annotations.
+        preserve_annotations: true,
       },
     }),
   );
@@ -106,6 +108,7 @@ export default [
       {
         file: _resolve("../lib/index.cjs.js"),
         format: "cjs",
+        exports: "named",
         banner,
         sourcemap: true,
         plugins: iifePlugins,
@@ -128,6 +131,8 @@ export default [
         file: _resolve(`../lib/${pkgName}.min.js`),
         format: "iife",
         name: iifeName,
+        exports: "named",
+        globals: { vue: "Vue" },
         banner,
         sourcemap: true,
         plugins: iifePlugins,

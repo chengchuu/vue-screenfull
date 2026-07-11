@@ -3,28 +3,152 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>vue-screenfull</title>
-    <link
-      rel="shortcut icon"
-      type="image/png"
-      href="//i.mazey.net/icon/fav/logo-dark-circle-transparent-144x144.png"
-    />
-    <link
-      rel="stylesheet"
-      href="//i.mazey.net/lib/bootstrap/5.3.8/css/bootstrap.min.css"
-      crossorigin="anonymous"
-    />
+    <title>vue-screenfull playground</title>
     <style>
-      .box {
-        color: #333;
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        color: #17202a;
+        background: #f4f1eb;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      main {
+        width: min(1120px, calc(100% - 2rem));
+        margin: auto;
+        padding: 4rem 0;
+      }
+      header {
+        max-width: 760px;
+        margin-bottom: 2rem;
+      }
+      h1 {
+        font-size: clamp(2.5rem, 8vw, 5.8rem);
+        line-height: 0.92;
+        letter-spacing: -0.06em;
+        margin: 0.25rem 0 1rem;
+      }
+      h2 {
+        margin: 0.75rem 0;
+      }
+      .eyebrow,
+      .badge {
+        font:
+          700 0.75rem ui-monospace,
+          monospace;
+        letter-spacing: 0.12em;
+        color: #6246a8;
+      }
+      button {
+        border: 2px solid #17202a;
+        border-radius: 99px;
+        padding: 0.72rem 1rem;
+        background: #fff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        margin: 0.25rem;
+      }
+      button:hover {
+        background: #17202a;
+        color: white;
+      }
+      button:focus-visible {
+        outline: 4px solid #ef8a47;
+        outline-offset: 2px;
+      }
+      .controls {
+        margin: 1rem 0 2rem;
+      }
+      .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+      .card,
+      .panel {
+        background: #fff;
+        border: 2px solid #17202a;
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+        box-shadow: 5px 5px 0 #17202a;
+      }
+      .target {
+        background: #dff3ed;
+      }
+      .art {
+        height: 180px;
+        border-radius: 0.75rem;
+        background:
+          radial-gradient(circle at 70% 25%, #ffd56a 0 12%, transparent 13%),
+          linear-gradient(145deg, #5d3ebc 0 48%, #ef8a47 49% 65%, #173d45 66%);
+      }
+      video {
+        width: 100%;
+        min-height: 180px;
+        border-radius: 0.75rem;
+        background: #17202a;
+      }
+      .panel {
+        margin-top: 1.25rem;
+      }
+      dl {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem 1rem;
+      }
+      dl div {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid #ccd1d5;
+        padding: 0.5rem 0;
+      }
+      dt {
+        font-weight: 700;
+      }
+      dd {
+        margin: 0;
+        text-align: right;
+        overflow-wrap: anywhere;
+      }
+      .error {
+        padding: 0.75rem;
+        border-left: 5px solid #b42318;
+        background: #fff0ee;
+      }
+      .notes {
+        max-width: 760px;
+        margin-top: 2rem;
+      }
+      .vue-screenfull-fallback {
+        padding: 2rem !important;
+      }
+      @media (max-width: 760px) {
+        main {
+          padding-top: 2rem;
+        }
+        .demo-grid {
+          grid-template-columns: 1fr;
+        }
+        dl {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        button {
+          transition:
+            background 0.15s,
+            color 0.15s;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="box">
-        <span>Content: vue-screenfull </span>
-      </div>
-    </div>
+    <div id="app"></div>
   </body>
 </html>

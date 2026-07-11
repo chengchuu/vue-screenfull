@@ -11,13 +11,19 @@ Keep the package generic, browser-friendly, and easy to rename. Preserve the pac
 
 ## Project Shape
 
-- `src/index.ts`: package entrypoint and public runtime API.
-- `src/typing.d.ts`: public TypeScript interfaces and type aliases.
+- `src/index.ts`: package entrypoint and supported root exports.
+- `src/core`: framework-light Fullscreen API detection, controller, target, error, and fallback logic.
+- `src/composables`: reactive Vue APIs and scope cleanup.
+- `src/components`, `src/directives`, and `src/plugin`: optional Vue integration layers.
+- `src/typing.ts`: public TypeScript interfaces and type aliases.
 - `types/global.d.ts`: ambient browser type augmentations.
-- `test`: Jest tests for public behavior.
-- `examples`: lightweight Webpack development demo.
+- `test`: Node and jsdom Jest tests for public behavior.
+- `type-tests`: compile-time checks for public root imports and narrowing.
+- `examples`: accessible Webpack playground and diagnostics UI.
+- `MANUAL_TESTING.md`: repeatable real-browser and operating-system matrix.
 - `scripts/rollup.config.mjs`: production JavaScript and declaration builds.
 - `scripts/webpack.config.dev.js`: development/demo build and dev server.
+- `scripts/build-pages.js`: combines the generated API docs and playground into the Pages artifact.
 - `scripts/change-package-name.js`: automation helper that changes only the package name.
 - `lib`: generated publish output; do not edit it by hand.
 - `dist-dev`, `docs`, and `coverage`: generated development, documentation, and test output.
@@ -40,20 +46,52 @@ The published package currently provides:
 Preserve these formats unless the user requests a packaging change. Keep `package.json` fields,
 Rollup outputs, README examples, and generated files aligned.
 
-The package intentionally has no runtime dependencies. Put build, test, lint, and documentation
-tools in `devDependencies`. Do not add a runtime dependency unless it provides clear value and the
-user accepts the consumer impact.
+The package intentionally has no runtime dependencies. Vue is a peer dependency and a development
+dependency, and must remain external in Rollup. Put build, test, lint, and documentation tools in
+`devDependencies`. Do not add a fullscreen wrapper such as `screenfull` as a dependency; compatibility
+logic belongs in this package.
 
 When changing a public function, value, or type, check all of these together:
 
 - exports and implementation in `src/index.ts`;
-- declarations in `src/typing.d.ts` and `types/global.d.ts`;
+- declarations in `src/typing.ts` and `types/global.d.ts`;
 - tests under `test`;
+- compile-time coverage under `type-tests`;
 - usage in `examples` and `README.md`;
 - generated declarations and bundles from `npm run build`.
 
 `packageInfo.version` is currently a literal value in `src/index.ts`. Keep it synchronized with
 `package.json` when changing the version unless the version source is deliberately redesigned.
+
+## Runtime Architecture And Invariants
+
+`createScreenfullController()` is the single compatibility implementation. The composables,
+component, directive, and plugin must reuse it rather than implementing their own browser-prefix or
+fallback behavior.
+
+- Do not touch `window`, `document`, `Element`, or other browser constructors at module load.
+- A controller is created per composable; native document events synchronize multiple instances.
+- Treat native fullscreen events as the source of truth for the active element and independent exits.
+- Keep request/exit transitions serialized. Reject overlapping actions without overwriting the
+  active `requesting` or `exiting` status.
+- Compare elements by object identity, not stringification.
+- `controller.request()` with no argument defaults to `document.documentElement`; an explicit
+  `null` is an invalid resolved target and must not silently fullscreen the page.
+- Legacy-prefixed methods may return `void`. In that case, settle from the corresponding change or
+  error event and always remove temporary listeners and timers.
+- Do not emit the same error twice when both a rejected promise and `fullscreenerror` describe one
+  managed transition.
+- `ScreenfullResult` is a discriminated union. Preserve narrowing between `ok: true`/`error: null`
+  and `ok: false`/a structured error.
+- CSS fallback is pseudo-fullscreen, never native fullscreen. It must restore every modified inline
+  style, body overflow, scroll position, focus where practical, classes, and listeners on exit or
+  disposal.
+- Destroying a controller during a pending fallback must clean up if the fallback finishes later and
+  must not notify disposed Vue scopes.
+
+Target resolution accepts Elements, Vue refs, component refs, selectors, and nullish defaults.
+Invalid or unmatched explicit targets must produce `INVALID_TARGET`; detached targets must produce
+`TARGET_NOT_CONNECTED`.
 
 ## TypeScript
 
@@ -77,6 +115,10 @@ consumers without requiring project-specific path aliases or undeclared type pac
 If declaration generation is changed, verify that consumers importing the package root still pick
 up the global augmentations. Do not publish an unreferenced ambient declaration artifact.
 
+`lib/global.d.ts` must remain an external module containing `export {};`; the declaration build adds
+this footer because declaration bundling otherwise strips the source module marker. Verify changes
+with strict checking in a clean consumer, not only the repository's `skipLibCheck` configuration.
+
 ## Module And Build Rules
 
 `package.json` does not declare `"type": "module"`.
@@ -90,10 +132,15 @@ Rollup owns production output. Preserve CJS, ESM, IIFE, source maps, declaration
 license banner, and minification controlled by `SCRIPTS_NPM_PACKAGE_DEBUG`. Babel helpers are
 bundled, and generated JavaScript must not acquire undeclared runtime helper imports.
 
-Webpack owns only the local example and development server. `npm run dev` serves the example on
-port 8080. Keep `examples/index.ts` small and representative of the public root API. Do not couple
-the publish build to Webpack or make development depend on prebuilt `lib` files without a clear
-reason.
+Preserve `/*#__PURE__*/` annotations on top-level Vue/component helpers and other safely pure
+initializers. Terser is configured with `preserve_annotations` so consumers can tree-shake unused
+Vue layers from the bundled ESM entry. When changing Rollup or minification, test a narrow named
+import with a second bundling pass instead of relying only on `sideEffects: false`.
+
+Webpack owns the local playground and development server. `npm run dev` serves it on port 8080.
+Keep the playground dependent only on public root exports, responsive, keyboard accessible, and
+usable with visible native and fallback exit controls. Do not couple the publish build to Webpack or
+make development depend on prebuilt `lib` files.
 
 Never edit generated files under `lib`, `dist-dev`, `docs`, or `coverage` as source changes. Rebuild
 them through the owning command when verification needs them.
@@ -127,6 +174,12 @@ Add or update Jest tests when public behavior changes. Keep tests deterministic 
 network services. For packaging changes, inspect the generated `lib` files and the `npm pack`
 manifest, not only whether Rollup exits successfully.
 
+Use `@jest-environment node` for import/SSR checks and `@jest-environment jsdom` for DOM, Vue,
+directive, component, and compatibility behavior. Native user-gesture fullscreen is not reliable in
+headless CI; test browser-name mapping and transition logic with deterministic fakes, then document
+real-browser coverage in `MANUAL_TESTING.md`. Keep `type-tests/public.ts` checking result narrowing
+and root-only consumer imports.
+
 Do not run `scripts/change-package-name.js` casually during verification because it mutates
 `package.json`. When explicitly testing it, restore the normal package identity or intentionally
 keep the requested result.
@@ -141,12 +194,18 @@ Update `README.md` when changing:
 - Node.js or TypeScript requirements;
 - release or documentation workflows visible to maintainers.
 
-TypeDoc configuration lives in `tsconfig.json`. It generates `./docs` from the public entrypoint
-`./src/index.ts`, uses `https://chengchuu.github.io/vue-screenfull/` as its hosted base URL, and
-uses `./images/logo-dark-circle-transparent-32x32.png` as the favicon. Keep the hosted URL aligned
-with the GitHub Pages location and the matching `homepage` field in `package.json`. Preserve the
-favicon asset when changing documentation output. Keep public TSDoc useful and concise. Generated
-docs are output, not hand-maintained source.
+TypeDoc configuration lives in `tsconfig.json`. `npm run docs` generates API documentation at
+`./docs/api`, builds the Webpack playground, and runs `scripts/build-pages.js` to create stable Pages
+routes at `/`, `/api/`, and `/playground/`. It uses
+`https://chengchuu.github.io/vue-screenfull/` as its hosted base URL and
+`./images/logo-dark-circle-transparent-32x32.png` as the favicon. Keep the hosted URL aligned with
+the matching `homepage` field in `package.json`, and keep the Pages workflow artifact path at
+`docs`. Generated docs and playground assets are output, not hand-maintained source.
+
+README changes to browser support must use runtime feature-detection language and distinguish tested
+platforms from documented targets. Do not claim that CSS fallback hides browser/OS UI or that
+fullscreen is guaranteed merely because `isEnabled` is true. Preserve iframe permission, user
+activation, mobile/WebView, SSR/Nuxt, accessibility, and `screenfull` migration guidance.
 
 ## Git Hooks And Formatting
 

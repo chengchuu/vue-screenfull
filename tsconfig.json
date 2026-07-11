@@ -15,12 +15,18 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["./src/**/*.ts", "./examples/**/*.ts", "./types/**/*.ts"],
+  "include": [
+    "./src/**/*.ts",
+    "./examples/**/*.ts",
+    "./types/**/*.ts",
+    "./type-tests/**/*.ts"
+  ],
   "exclude": ["./coverage", "./dist-dev", "./docs", "./lib", "./node_modules"],
   "typedocOptions": {
     "entryPoints": ["./src/index.ts"],
-    "out": "./docs",
+    "out": "./docs/api",
     "hostedBaseUrl": "https://chengchuu.github.io/vue-screenfull/",
-    "favicon": "./images/logo-dark-circle-transparent-32x32.png"
+    "favicon": "./images/logo-dark-circle-transparent-32x32.png",
+    "highlightLanguages": ["bash", "html", "javascript", "typescript", "vue"]
   }
 }

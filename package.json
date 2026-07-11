@@ -1,15 +1,17 @@
 {
   "name": "vue-screenfull",
   "version": "1.0.2",
-  "description": "A TypeScript template for publishing npm packages in CJS, ESM, and browser formats.",
+  "description": "Reactive, strongly typed, SSR-safe fullscreen utilities for Vue 3.",
   "main": "lib/index.cjs.js",
   "module": "lib/index.esm.js",
   "types": "lib/index.d.ts",
+  "sideEffects": false,
   "unpkg": "lib/vue-screenfull.min.js",
   "jsdelivr": "lib/vue-screenfull.min.js",
   "files": [
     "lib",
     "README.md",
+    "MANUAL_TESTING.md",
     "LICENSE"
   ],
   "scripts": {
@@ -21,7 +23,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "typecheck": "tsc --noEmit",
-    "docs": "typedoc --readme ./README.md --excludeProtected --excludePrivate --excludeInternal --hideGenerator",
+    "docs": "typedoc --out ./docs/api --readme ./README.md --excludeProtected --excludePrivate --excludeInternal --hideGenerator && npm run build:dev && node scripts/build-pages.js",
     "lint": "eslint ./examples ./scripts ./src ./test ./types",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write .",
@@ -35,8 +37,11 @@
     "url": "git+https://github.com/chengchuu/vue-screenfull.git"
   },
   "keywords": [
-    "npm-package",
-    "template",
+    "vue",
+    "vue3",
+    "fullscreen",
+    "screenfull",
+    "composition-api",
     "typescript",
     "rollup",
     "webpack",
@@ -69,6 +74,7 @@
     "html-webpack-plugin": "^5.6.7",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.2.0",
     "lint-staged": "^17.0.8",
     "prettier": "^3.9.5",
     "rollup": "^4.62.2",
@@ -78,8 +84,12 @@
     "typedoc": "^0.28.20",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.63.0",
+    "vue": "^3.5.24",
     "webpack": "^5.108.4",
     "webpack-cli": "^7.2.1",
     "webpack-dev-server": "^6.0.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
   }
 }
