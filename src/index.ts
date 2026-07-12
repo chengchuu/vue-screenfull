@@ -13,8 +13,3 @@ export { Screenfull } from "./components/Screenfull";
 export { vScreenfull } from "./directives/screenfull";
 export { default } from "./plugin";
 export type * from "./typing";
-
-export const packageInfo = {
-  name: "vue-screenfull",
-  version: "1.0.2",
-} as const;

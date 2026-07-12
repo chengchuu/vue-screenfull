@@ -3,91 +3,168 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>vue-screenfull playground</title>
-    <link
-      rel="shortcut icon"
-      type="image/png"
-      href="//i.mazey.net/icon/fav/logo-dark-circle-transparent-32x32.png"
+    <title>vue-screenfull Playground - Vue 3 Fullscreen Examples</title>
+    <meta
+      name="description"
+      content="Try vue-screenfull examples for page, element, image, video, native fullscreen, CSS fallback behavior, events, and structured errors."
     />
+    <link
+      rel="canonical"
+      href="https://chengchuu.github.io/vue-screenfull/playground/"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://i.mazey.net/icon/fav/logo-dark-circle-transparent-32x32.png"
+    />
+    <link rel="stylesheet" href="../theme.css" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="vue-screenfull" />
+    <meta
+      property="og:title"
+      content="vue-screenfull Playground - Vue 3 Fullscreen Examples"
+    />
+    <meta
+      property="og:description"
+      content="Try vue-screenfull examples for page, element, image, video, native fullscreen, CSS fallback behavior, events, and structured errors."
+    />
+    <meta
+      property="og:url"
+      content="https://chengchuu.github.io/vue-screenfull/playground/"
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="vue-screenfull Playground - Vue 3 Fullscreen Examples"
+    />
+    <meta
+      name="twitter:description"
+      content="Try vue-screenfull examples for page, element, image, video, native fullscreen, CSS fallback behavior, events, and structured errors."
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "vue-screenfull Playground",
+        "description": "Interactive examples for the vue-screenfull Vue 3 library.",
+        "url": "https://chengchuu.github.io/vue-screenfull/playground/",
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "vue-screenfull",
+          "url": "https://chengchuu.github.io/vue-screenfull/"
+        },
+        "about": {
+          "@type": "SoftwareSourceCode",
+          "name": "vue-screenfull",
+          "codeRepository": "https://github.com/chengchuu/vue-screenfull"
+        }
+      }
+    </script>
+    <script>
+      (() => {
+        try {
+          const key = "vue-screenfull-theme";
+          const value = localStorage.getItem(key) || "system";
+          const theme =
+            value === "system"
+              ? matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light"
+              : value;
+          document.documentElement.dataset.theme =
+            theme === "dark" ? "dark" : "light";
+          document.documentElement.style.colorScheme =
+            document.documentElement.dataset.theme;
+          localStorage.setItem("tsd-theme", value === "system" ? "os" : value);
+        } catch {}
+      })();
+    </script>
+    <script src="../theme.js" defer></script>
     <style>
-      :root {
-        color-scheme: light;
-        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-        color: #17202a;
-        background: #f4f1eb;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-      }
       main {
-        width: min(1120px, calc(100% - 2rem));
+        width: min(var(--content-width), calc(100% - 2rem));
         margin: auto;
-        padding: 4rem 0;
+        padding: clamp(2.5rem, 7vw, 5rem) 0;
       }
-      header {
-        max-width: 760px;
+      .playground-intro {
+        max-width: 48rem;
         margin-bottom: 2rem;
       }
-      h1 {
-        font-size: clamp(2.5rem, 8vw, 5.8rem);
+      .playground-intro h1 {
+        margin: 0.3rem 0 1rem;
+        font-size: clamp(2.7rem, 8vw, 5.8rem);
         line-height: 0.92;
         letter-spacing: -0.06em;
-        margin: 0.25rem 0 1rem;
       }
-      h2 {
-        margin: 0.75rem 0;
-      }
-      .eyebrow,
-      .badge {
-        font:
-          700 0.75rem ui-monospace,
-          monospace;
-        letter-spacing: 0.12em;
-        color: #6246a8;
+      .playground-intro > p:last-child {
+        color: var(--color-text-muted);
+        font-size: 1.08rem;
       }
       button {
-        border: 2px solid #17202a;
-        border-radius: 99px;
-        padding: 0.72rem 1rem;
-        background: #fff;
-        font: inherit;
-        font-weight: 700;
-        cursor: pointer;
         margin: 0.25rem;
+        padding: 0.7rem 1rem;
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        color: var(--color-text);
+        background: var(--color-surface);
+        font-weight: 720;
+        cursor: pointer;
       }
       button:hover {
-        background: #17202a;
-        color: white;
-      }
-      button:focus-visible {
-        outline: 4px solid #ef8a47;
-        outline-offset: 2px;
+        border-color: var(--color-primary);
+        background: var(--color-primary-soft);
       }
       .controls {
         margin: 1rem 0 2rem;
+        padding: 1.25rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.9rem;
+        background: var(--color-surface);
+      }
+      .controls h2 {
+        margin-top: 0;
+      }
+      .controls__buttons {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .error-demo__explanation {
+        margin: 0.75rem 0 0;
+        color: var(--color-text-muted);
+        font-size: 0.94rem;
+      }
+      .action-feedback {
+        min-height: 3rem;
+        margin: 1rem 0 0;
+        padding: 0.75rem 1rem;
+        border-left: 4px solid var(--color-primary);
+        background: var(--color-surface-muted);
       }
       .demo-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 1rem;
       }
       .card,
       .panel {
-        background: #fff;
-        border: 2px solid #17202a;
-        border-radius: 1.25rem;
+        min-width: 0;
         padding: 1.25rem;
-        box-shadow: 5px 5px 0 #17202a;
+        border: 1px solid var(--color-border);
+        border-radius: 0.9rem;
+        background: var(--color-surface);
+        box-shadow: var(--shadow-card);
       }
       .target {
-        background: #dff3ed;
+        background: color-mix(
+          in srgb,
+          var(--color-success) 10%,
+          var(--color-surface)
+        );
       }
       .art {
         height: 180px;
-        border-radius: 0.75rem;
+        border-radius: 0.65rem;
         background:
           radial-gradient(circle at 70% 25%, #ffd56a 0 12%, transparent 13%),
           linear-gradient(145deg, #5d3ebc 0 48%, #ef8a47 49% 65%, #173d45 66%);
@@ -95,23 +172,33 @@
       video {
         width: 100%;
         min-height: 180px;
-        border-radius: 0.75rem;
-        background: #17202a;
+        border-radius: 0.65rem;
+        background: var(--color-code-background);
+      }
+      h2 {
+        margin: 0.75rem 0;
+      }
+      .badge {
+        color: var(--color-primary);
+        font:
+          750 0.75rem ui-monospace,
+          monospace;
+        letter-spacing: 0.1em;
       }
       .panel {
         margin-top: 1.25rem;
       }
       dl {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.5rem 1rem;
       }
       dl div {
         display: flex;
         justify-content: space-between;
         gap: 1rem;
-        border-bottom: 1px solid #ccd1d5;
         padding: 0.5rem 0;
+        border-bottom: 1px solid var(--color-border);
       }
       dt {
         font-weight: 700;
@@ -124,19 +211,28 @@
       .error {
         padding: 0.75rem;
         border-left: 5px solid #b42318;
-        background: #fff0ee;
+        background: color-mix(in srgb, #b42318 12%, var(--color-surface));
       }
       .notes {
-        max-width: 760px;
+        max-width: 48rem;
         margin-top: 2rem;
+      }
+      footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--color-border);
+      }
+      footer ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        padding: 0;
+        list-style: none;
       }
       .vue-screenfull-fallback {
         padding: 2rem !important;
       }
-      @media (max-width: 760px) {
-        main {
-          padding-top: 2rem;
-        }
+      @media (max-width: 800px) {
         .demo-grid {
           grid-template-columns: 1fr;
         }
@@ -144,16 +240,110 @@
           grid-template-columns: 1fr;
         }
       }
+      @media (max-width: 480px) {
+        main {
+          width: calc(100% - 1.25rem);
+        }
+        button {
+          width: 100%;
+          margin-inline: 0;
+        }
+        .controls__buttons {
+          display: block;
+        }
+        dl div {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 0.1rem;
+        }
+        dd {
+          text-align: left;
+        }
+      }
       @media (prefers-reduced-motion: no-preference) {
         button {
           transition:
             background 0.15s,
-            color 0.15s;
+            border-color 0.15s;
         }
       }
     </style>
   </head>
   <body>
-    <div id="app"></div>
+    <header class="site-header">
+      <div class="shell site-header__row">
+        <a class="brand" href="../" aria-label="vue-screenfull home"
+          >vue-screenfull</a
+        >
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="playground-navigation"
+          data-nav-toggle
+        >
+          Menu
+        </button>
+        <nav
+          id="playground-navigation"
+          class="site-nav"
+          aria-label="Project navigation"
+          data-mobile-nav
+        >
+          <ul>
+            <li><a href="../">Home</a></li>
+            <li><a href="../#features">Features</a></li>
+            <li><a href="../#basic-usage">Usage</a></li>
+            <li><a href="../api/">API documentation</a></li>
+          </ul>
+          <ul class="site-nav__external">
+            <li>
+              <a href="https://github.com/chengchuu/vue-screenfull"
+                >GitHub repository</a
+              >
+            </li>
+            <li>
+              <a href="https://www.npmjs.com/package/vue-screenfull"
+                >npm package</a
+              >
+            </li>
+          </ul>
+          <label class="theme-control"
+            ><span>Theme</span
+            ><select data-theme-select aria-label="Choose playground theme">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select></label
+          >
+        </nav>
+      </div>
+    </header>
+    <div id="app">
+      <main>
+        <header class="playground-intro">
+          <p class="eyebrow">Vue 3 · Fullscreen API · CSS fallback</p>
+          <h1>vue-screenfull playground</h1>
+          <p>
+            Explore page, element, image-style, and video targets. Native
+            fullscreen requires a user gesture and may be restricted by browser
+            or embedding policy. CSS mode is pseudo-fullscreen and does not hide
+            browser or operating-system UI.
+          </p>
+        </header>
+        <section class="panel">
+          <h2>Interactive fullscreen examples</h2>
+          <p>
+            JavaScript enhances this page with controls, reactive diagnostics,
+            event history, and structured error feedback.
+          </p>
+        </section>
+      </main>
+    </div>
+    <noscript
+      >The vue-screenfull playground requires JavaScript for interactive
+      Fullscreen API examples. The project documentation remains available from
+      the <a href="../">main vue-screenfull website</a>.</noscript
+    >
   </body>
 </html>

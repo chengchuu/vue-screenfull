@@ -18,6 +18,14 @@ const candidates: readonly RawFullscreenApi[] = [
     fullscreenerror: "webkitfullscreenerror",
   },
   {
+    requestFullscreen: "webkitRequestFullScreen",
+    exitFullscreen: "webkitCancelFullScreen",
+    fullscreenElement: "webkitCurrentFullScreenElement",
+    fullscreenEnabled: "webkitCancelFullScreen",
+    fullscreenchange: "webkitfullscreenchange",
+    fullscreenerror: "webkitfullscreenerror",
+  },
+  {
     requestFullscreen: "mozRequestFullScreen",
     exitFullscreen: "mozCancelFullScreen",
     fullscreenElement: "mozFullScreenElement",

@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>vue-screenfull - Vue 3 Fullscreen API Utilities</title>
+    <meta
+      name="description"
+      content="Reactive, strongly typed fullscreen utilities for Vue 3, including composables, a component, directive, plugin, structured errors, and an optional CSS fallback."
+    />
+    <link rel="canonical" href="https://chengchuu.github.io/vue-screenfull/" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://i.mazey.net/icon/fav/logo-dark-circle-transparent-32x32.png"
+    />
+    <link rel="stylesheet" href="./theme.css" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="vue-screenfull" />
+    <meta
+      property="og:title"
+      content="vue-screenfull - Vue 3 Fullscreen API Utilities"
+    />
+    <meta
+      property="og:description"
+      content="Reactive, strongly typed fullscreen utilities for Vue 3, including composables, a component, directive, plugin, structured errors, and an optional CSS fallback."
+    />
+    <meta
+      property="og:url"
+      content="https://chengchuu.github.io/vue-screenfull/"
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="vue-screenfull - Vue 3 Fullscreen API Utilities"
+    />
+    <meta
+      name="twitter:description"
+      content="Reactive, strongly typed fullscreen utilities for Vue 3, including composables, a component, directive, plugin, structured errors, and an optional CSS fallback."
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "vue-screenfull",
+        "description": "Reactive, strongly typed fullscreen utilities for Vue 3.",
+        "url": "https://chengchuu.github.io/vue-screenfull/",
+        "codeRepository": "https://github.com/chengchuu/vue-screenfull",
+        "downloadUrl": "https://www.npmjs.com/package/vue-screenfull",
+        "programmingLanguage": ["TypeScript", "JavaScript", "Vue"],
+        "runtimePlatform": "Web browser",
+        "license": "https://github.com/chengchuu/vue-screenfull/blob/main/LICENSE",
+        "sameAs": [
+          "https://github.com/chengchuu/vue-screenfull",
+          "https://www.npmjs.com/package/vue-screenfull"
+        ]
+      }
+    </script>
+    <script>
+      (() => {
+        try {
+          const key = "vue-screenfull-theme";
+          const value = localStorage.getItem(key) || "system";
+          const theme =
+            value === "system"
+              ? matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light"
+              : value;
+          document.documentElement.dataset.theme =
+            theme === "dark" ? "dark" : "light";
+          document.documentElement.style.colorScheme =
+            document.documentElement.dataset.theme;
+          localStorage.setItem("tsd-theme", value === "system" ? "os" : value);
+        } catch {}
+      })();
+    </script>
+    <script src="./theme.js" defer></script>
+    <style>
+      .hero {
+        padding: clamp(4rem, 10vw, 7.5rem) 0 4rem;
+      }
+      .hero__grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+        align-items: center;
+        gap: clamp(2rem, 6vw, 5rem);
+      }
+      .hero__copy {
+        min-width: 0;
+      }
+      h1 {
+        max-width: 12ch;
+        margin: 0.5rem 0 1.25rem;
+        font-size: clamp(2.55rem, 8vw, 6.8rem);
+        line-height: 0.9;
+        letter-spacing: -0.065em;
+      }
+      .hero__lede {
+        max-width: 46rem;
+        color: var(--color-text-muted);
+        font-size: clamp(1.08rem, 2vw, 1.3rem);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1.75rem;
+      }
+      .install-card {
+        padding: 1.25rem;
+        border: 1px solid var(--color-border);
+        border-radius: 1rem;
+        background: var(--color-surface);
+        box-shadow: var(--shadow-card);
+      }
+      .install-card p {
+        margin-top: 0;
+        color: var(--color-text-muted);
+        font-weight: 700;
+      }
+      .install-card pre {
+        margin: 0;
+        padding: 1rem;
+        border-radius: 0.65rem;
+        font-size: 0.95rem;
+      }
+      .section {
+        padding: clamp(3rem, 7vw, 5.5rem) 0;
+        border-top: 1px solid var(--color-border);
+      }
+      .section-heading {
+        max-width: 44rem;
+        margin-bottom: 2rem;
+      }
+      .section-heading h2 {
+        margin: 0 0 0.6rem;
+        font-size: clamp(2rem, 4vw, 3.25rem);
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+      }
+      .section-heading p {
+        margin: 0;
+        color: var(--color-text-muted);
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+      }
+      .feature {
+        padding: 1.35rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.8rem;
+        background: var(--color-surface);
+      }
+      .feature h3 {
+        margin: 0 0 0.4rem;
+        font-size: 1rem;
+      }
+      .feature p {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: 0.94rem;
+      }
+      .usage-grid,
+      .cta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+      }
+      .code-card {
+        min-width: 0;
+        border: 1px solid var(--color-border);
+        border-radius: 0.85rem;
+        overflow: hidden;
+        background: var(--color-surface);
+      }
+      .code-card__label {
+        margin: 0;
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid var(--color-border);
+        color: var(--color-text-muted);
+        font:
+          700 0.8rem ui-monospace,
+          monospace;
+      }
+      .code-card pre {
+        min-height: 100%;
+        margin: 0;
+        padding: 1.25rem;
+        border-radius: 0;
+        font-size: 0.88rem;
+        line-height: 1.65;
+      }
+      .usage-copy {
+        padding: 1.5rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.85rem;
+        background: var(--color-surface);
+      }
+      .usage-copy h3 {
+        margin-top: 0;
+      }
+      .usage-copy li + li {
+        margin-top: 0.55rem;
+      }
+      .cta-card {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 1.6rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.85rem;
+        background: var(--color-surface);
+        box-shadow: var(--shadow-card);
+      }
+      .cta-card h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.35rem;
+      }
+      .cta-card p {
+        flex: 1;
+        color: var(--color-text-muted);
+      }
+      .notes {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2rem;
+      }
+      .notes h3 {
+        margin-top: 0;
+      }
+      .site-footer {
+        border-top: 1px solid var(--color-border);
+        padding: 2.5rem 0;
+      }
+      .site-footer__row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem 1.5rem;
+      }
+      .site-footer nav {
+        flex: 1;
+      }
+      .site-footer ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      @media (max-width: 900px) {
+        .hero__grid,
+        .feature-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .hero__copy {
+          grid-column: 1 / -1;
+        }
+      }
+      @media (max-width: 680px) {
+        .hero {
+          padding-top: 3.25rem;
+        }
+        .hero__grid,
+        .feature-grid,
+        .usage-grid,
+        .cta-grid,
+        .notes {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .actions a {
+          width: 100%;
+        }
+        .site-footer__row {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+      @media (max-width: 380px) {
+        h1 {
+          font-size: 2.4rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="shell site-header__row">
+        <a class="brand" href="./" aria-label="vue-screenfull home"
+          >vue-screenfull</a
+        >
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="primary-navigation"
+          data-nav-toggle
+        >
+          Menu
+        </button>
+        <nav
+          id="primary-navigation"
+          class="site-nav"
+          aria-label="Primary navigation"
+          data-mobile-nav
+        >
+          <ul>
+            <li><a href="./">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#basic-usage">Basic usage</a></li>
+            <li><a href="./playground/">Playground</a></li>
+            <li><a href="./api/">API</a></li>
+          </ul>
+          <ul class="site-nav__external">
+            <li>
+              <a href="https://github.com/chengchuu/vue-screenfull"
+                >GitHub repository</a
+              >
+            </li>
+            <li>
+              <a href="https://www.npmjs.com/package/vue-screenfull"
+                >npm package</a
+              >
+            </li>
+          </ul>
+          <label class="theme-control"
+            ><span>Theme</span
+            ><select data-theme-select aria-label="Choose website theme">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select></label
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero shell" aria-labelledby="hero-title">
+        <div class="hero__grid">
+          <div class="hero__copy">
+            <p class="eyebrow">Vue 3 · TypeScript · Fullscreen API</p>
+            <h1 id="hero-title">Fullscreen utilities built for Vue 3</h1>
+            <p class="hero__lede">
+              Reactive, strongly typed, SSR-safe fullscreen utilities using Vue
+              composables, a renderless component, a directive, an optional
+              plugin, and a framework-light controller.
+            </p>
+            <div class="actions">
+              <a class="button-link" href="./playground/"
+                >Open the live playground</a
+              >
+              <a class="button-link button-link--secondary" href="./api/"
+                >Read the API documentation</a
+              >
+              <a
+                class="button-link button-link--secondary"
+                href="https://github.com/chengchuu/vue-screenfull"
+                >View on GitHub</a
+              >
+            </div>
+          </div>
+          <aside
+            id="installation"
+            class="install-card"
+            aria-labelledby="install-title"
+          >
+            <p id="install-title">Install from npm</p>
+            <pre><code>npm install vue-screenfull</code></pre>
+            <p>
+              <a href="https://www.npmjs.com/package/vue-screenfull"
+                >View vue-screenfull on npm</a
+              >
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section id="features" class="section">
+        <div class="shell">
+          <div class="section-heading">
+            <p class="eyebrow">Feature overview</p>
+            <h2>One core, several Vue-friendly interfaces</h2>
+            <p>
+              Use the integration level that fits the application while keeping
+              the same fullscreen state and structured result model.
+            </p>
+          </div>
+          <div class="feature-grid">
+            <article class="feature">
+              <h3>Reactive composables</h3>
+              <p>
+                Observe enabled, active, fallback, target, status, and error
+                state through Vue refs.
+              </p>
+            </article>
+            <article class="feature">
+              <h3>Strong TypeScript surface</h3>
+              <p>
+                Public options, results, errors, controller state, component
+                props, and directive values are typed.
+              </p>
+            </article>
+            <article class="feature">
+              <h3>SSR-safe imports</h3>
+              <p>
+                Browser globals are guarded so importing the package does not
+                touch the DOM at module load.
+              </p>
+            </article>
+            <article class="feature">
+              <h3>Vue integration</h3>
+              <p>
+                Choose a renderless component, directive, optional plugin, or
+                Composition API functions.
+              </p>
+            </article>
+            <article class="feature">
+              <h3>Framework-light controller</h3>
+              <p>
+                Use the same browser compatibility core outside a component
+                setup scope.
+              </p>
+            </article>
+            <article class="feature">
+              <h3>Optional CSS fallback</h3>
+              <p>
+                Use an explicitly labelled pseudo-fullscreen mode when native
+                fullscreen is unavailable or rejected.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="basic-usage" class="section">
+        <div class="shell">
+          <div class="section-heading">
+            <p class="eyebrow">Basic usage</p>
+            <h2>Toggle a target from a user gesture</h2>
+            <p>
+              Fullscreen requests can still be rejected by browser activation or
+              embedding policy, so display structured errors to the user.
+            </p>
+          </div>
+          <div class="usage-grid">
+            <div class="code-card">
+              <p class="code-card__label">FullscreenPanel.vue</p>
+              <pre><code>&lt;script setup lang="ts"&gt;
+import { useTemplateRef } from "vue";
+import { useScreenfull } from "vue-screenfull";
+
+const target = useTemplateRef&lt;HTMLElement&gt;("target");
+const { isEnabled, isFullscreen, error, toggle } =
+  useScreenfull();
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;section ref="target"&gt;
+    &lt;button
+      type="button"
+      :disabled="!isEnabled"
+      @click="toggle(target)"
+    &gt;
+      {{ isFullscreen ? "Exit fullscreen" : "Enter fullscreen" }}
+    &lt;/button&gt;
+    &lt;p v-if="error" role="alert"&gt;{{ error.message }}&lt;/p&gt;
+  &lt;/section&gt;
+&lt;/template&gt;</code></pre>
+            </div>
+            <div class="usage-copy">
+              <h3>What this example uses</h3>
+              <ul>
+                <li>
+                  <code>useTemplateRef()</code> for a Vue 3 template target.
+                </li>
+                <li>
+                  <code>useScreenfull()</code> for reactive state and actions.
+                </li>
+                <li>
+                  A semantic button so the request begins from a direct user
+                  gesture.
+                </li>
+                <li>An alert region for structured error feedback.</li>
+                <li>
+                  A visible label that reflects the current fullscreen state.
+                </li>
+              </ul>
+              <p>
+                <a href="./api/functions/useScreenfull.html"
+                  >Explore the useScreenfull API reference</a
+                >
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="shell">
+          <div class="section-heading">
+            <p class="eyebrow">Explore</p>
+            <h2>Try the library or inspect every public type</h2>
+          </div>
+          <div class="cta-grid">
+            <article class="cta-card">
+              <h3>Live playground</h3>
+              <p>
+                Try page, element, image-style, and video targets; compare
+                native and CSS fallback modes; and inspect diagnostics, events,
+                and structured errors.
+              </p>
+              <a class="button-link" href="./playground/"
+                >Open the live playground</a
+              >
+            </article>
+            <article class="cta-card">
+              <h3>API documentation</h3>
+              <p>
+                Browse composables, the controller, component, directive,
+                plugin, options, results, errors, and exported TypeScript types.
+              </p>
+              <a class="button-link button-link--secondary" href="./api/"
+                >Read the API documentation</a
+              >
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="shell notes">
+          <article id="migration">
+            <p class="eyebrow">Migration</p>
+            <h2>Moving from screenfull</h2>
+            <p>
+              vue-screenfull is an independent Vue 3 library, not a drop-in
+              replacement. It adds reactive refs, lifecycle integration,
+              structured results, and optional Vue-facing APIs.
+            </p>
+            <a
+              href="https://github.com/chengchuu/vue-screenfull#migrating-from-screenfull"
+              >Read the complete migration guide</a
+            >
+          </article>
+          <article id="browser-considerations">
+            <p class="eyebrow">Platform notes</p>
+            <h2>Browser and mobile considerations</h2>
+            <p>
+              Support is feature-detected. Native fullscreen generally requires
+              transient user activation and remains controlled by the browser,
+              operating system, embedding policy, and WebView host.
+            </p>
+            <a
+              href="https://github.com/chengchuu/vue-screenfull/blob/main/MANUAL_TESTING.md"
+              >Review browser and platform testing guidance</a
+            >
+          </article>
+          <article id="css-fallback">
+            <p class="eyebrow">Optional fallback</p>
+            <h2>CSS pseudo-fullscreen</h2>
+            <p>
+              The optional CSS fallback fills the visual viewport and restores
+              the page styles it changes. It is not native fullscreen and cannot
+              hide browser or operating-system interface elements.
+            </p>
+            <a href="https://github.com/chengchuu/vue-screenfull#css-fallback"
+              >Read the CSS fallback documentation</a
+            >
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell site-footer__row">
+        <strong>vue-screenfull</strong>
+        <nav aria-label="Footer navigation">
+          <ul>
+            <li>
+              <a href="https://github.com/chengchuu/vue-screenfull"
+                >GitHub repository</a
+              >
+            </li>
+            <li>
+              <a href="https://www.npmjs.com/package/vue-screenfull"
+                >npm package</a
+              >
+            </li>
+            <li><a href="./playground/">Playground</a></li>
+            <li><a href="./api/">API documentation</a></li>
+            <li>
+              <a
+                href="https://github.com/chengchuu/vue-screenfull/blob/main/LICENSE"
+                >MIT License</a
+              >
+            </li>
+          </ul>
+        </nav>
+        <label class="theme-control"
+          ><span>Theme</span
+          ><select data-theme-select aria-label="Choose footer website theme">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select></label
+        >
+      </div>
+    </footer>
+  </body>
+</html>

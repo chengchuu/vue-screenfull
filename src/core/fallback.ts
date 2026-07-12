@@ -4,7 +4,12 @@ import type {
   ScreenfullOptions,
 } from "../typing";
 
-type StyleSnapshot = Record<string, string>;
+interface PropertySnapshot {
+  value: string;
+  priority: string;
+}
+
+type StyleSnapshot = Record<string, PropertySnapshot>;
 const properties = [
   "position",
   "inset",
@@ -14,21 +19,25 @@ const properties = [
   "left",
   "width",
   "height",
-  "maxWidth",
-  "maxHeight",
+  "max-width",
+  "max-height",
   "margin",
-  "zIndex",
+  "z-index",
   "overflow",
   "background",
 ] as const;
 
+const activeCssFallbacks = new WeakMap<Document, CssFallback>();
+
 export class CssFallback implements ScreenfullFallbackHandler {
   private element: HTMLElement | null = null;
   private styles: StyleSnapshot | null = null;
-  private bodyOverflow = "";
+  private bodyOverflow: PropertySnapshot = { value: "", priority: "" };
   private scrollX = 0;
   private scrollY = 0;
   private className = "";
+  private addedClass = false;
+  private lockedScroll = false;
 
   enter({ element, document: doc, options }: ScreenfullFallbackContext): void {
     const HTMLElementConstructor = doc.defaultView?.HTMLElement;
@@ -38,44 +47,92 @@ export class CssFallback implements ScreenfullFallbackHandler {
     ) {
       throw new TypeError("CSS fallback requires an HTMLElement.");
     }
-    this.element = element as HTMLElement;
-    this.className = options.fallbackClass ?? "vue-screenfull-fallback";
-    this.styles = {};
-    for (const property of properties)
-      this.styles[property] = this.element.style[property];
-    this.bodyOverflow = doc.body?.style.overflow ?? "";
-    this.scrollX = doc.defaultView?.scrollX ?? 0;
-    this.scrollY = doc.defaultView?.scrollY ?? 0;
-    Object.assign(this.element.style, {
-      position: "fixed",
-      inset: "0",
-      top: "0",
-      right: "0",
-      bottom: "0",
-      left: "0",
-      width: "100vw",
-      height: "100dvh",
-      maxWidth: "none",
-      maxHeight: "none",
-      margin: "0",
-      zIndex: "2147483647",
-      overflow: "auto",
-      background: this.element.style.background || "Canvas",
-    });
-    this.element.classList.add(this.className);
-    if (options.lockScroll !== false && doc.body)
-      doc.body.style.overflow = "hidden";
+    const active = activeCssFallbacks.get(doc);
+    if (active && active !== this) {
+      throw new Error("Another CSS fullscreen fallback is already active.");
+    }
+    activeCssFallbacks.set(doc, this);
+    try {
+      this.element = element as HTMLElement;
+      this.className = options.fallbackClass ?? "vue-screenfull-fallback";
+      this.styles = {};
+      for (const property of properties) {
+        this.styles[property] = {
+          value: this.element.style.getPropertyValue(property),
+          priority: this.element.style.getPropertyPriority(property),
+        };
+      }
+      this.bodyOverflow = {
+        value: doc.body?.style.getPropertyValue("overflow") ?? "",
+        priority: doc.body?.style.getPropertyPriority("overflow") ?? "",
+      };
+      this.scrollX = doc.defaultView?.scrollX ?? 0;
+      this.scrollY = doc.defaultView?.scrollY ?? 0;
+      const fallbackStyles: ReadonlyArray<readonly [string, string]> = [
+        ["position", "fixed"],
+        ["inset", "0"],
+        ["top", "0"],
+        ["right", "0"],
+        ["bottom", "0"],
+        ["left", "0"],
+        ["width", "100vw"],
+        ["height", "100dvh"],
+        ["max-width", "none"],
+        ["max-height", "none"],
+        ["margin", "0"],
+        ["z-index", "2147483647"],
+        ["overflow", "auto"],
+        ["background", this.element.style.background || "Canvas"],
+      ];
+      for (const [property, value] of fallbackStyles)
+        this.element.style.setProperty(property, value, "important");
+      this.addedClass = !this.element.classList.contains(this.className);
+      if (this.addedClass) this.element.classList.add(this.className);
+      this.lockedScroll = options.lockScroll !== false;
+      if (this.lockedScroll && doc.body)
+        doc.body.style.setProperty("overflow", "hidden", "important");
+    } catch (cause) {
+      try {
+        this.exit({ element, document: doc, options });
+      } finally {
+        if (activeCssFallbacks.get(doc) === this)
+          activeCssFallbacks.delete(doc);
+      }
+      throw cause;
+    }
   }
 
   exit({ document: doc }: ScreenfullFallbackContext): void {
     if (!this.element || !this.styles) return;
-    for (const property of properties)
-      this.element.style[property] = this.styles[property] ?? "";
-    this.element.classList.remove(this.className);
-    if (doc.body) doc.body.style.overflow = this.bodyOverflow;
-    doc.defaultView?.scrollTo?.(this.scrollX, this.scrollY);
-    this.element = null;
-    this.styles = null;
+    try {
+      for (const property of properties) {
+        const snapshot = this.styles[property];
+        if (snapshot.value)
+          this.element.style.setProperty(
+            property,
+            snapshot.value,
+            snapshot.priority,
+          );
+        else this.element.style.removeProperty(property);
+      }
+      if (this.addedClass) this.element.classList.remove(this.className);
+      if (this.lockedScroll && doc.body) {
+        if (this.bodyOverflow.value)
+          doc.body.style.setProperty(
+            "overflow",
+            this.bodyOverflow.value,
+            this.bodyOverflow.priority,
+          );
+        else doc.body.style.removeProperty("overflow");
+        doc.defaultView?.scrollTo?.(this.scrollX, this.scrollY);
+      }
+    } finally {
+      if (activeCssFallbacks.get(doc) === this) activeCssFallbacks.delete(doc);
+      this.element = null;
+      this.styles = null;
+      this.addedClass = false;
+      this.lockedScroll = false;
+    }
   }
 }
 
