@@ -6,6 +6,8 @@ declare global {
     webkitExitFullscreen?: () => Promise<void> | void;
     webkitFullscreenElement?: Element | null;
     webkitFullscreenEnabled?: boolean;
+    webkitCancelFullScreen?: () => Promise<void> | void;
+    webkitCurrentFullScreenElement?: Element | null;
     mozCancelFullScreen?: () => Promise<void> | void;
     mozFullScreenElement?: Element | null;
     mozFullScreenEnabled?: boolean;
@@ -15,6 +17,9 @@ declare global {
   }
   interface Element {
     webkitRequestFullscreen?: (
+      options?: FullscreenOptions,
+    ) => Promise<void> | void;
+    webkitRequestFullScreen?: (
       options?: FullscreenOptions,
     ) => Promise<void> | void;
     mozRequestFullScreen?: (

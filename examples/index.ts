@@ -1,5 +1,9 @@
 import { createApp, h, ref } from "vue";
-import { useScreenfull, type ScreenfullResult } from "../src";
+import {
+  detectFullscreenApi,
+  useScreenfull,
+  type ScreenfullResult,
+} from "../src";
 
 createApp({
   setup() {
@@ -8,14 +12,25 @@ createApp({
     const video = ref<HTMLVideoElement | null>(null);
     const history = ref<string[]>(["Playground ready"]);
     const lastAction = ref("none");
+    const actionFeedback = ref(
+      "Choose an action to see its structured result here.",
+    );
+    const showMissingTargetExplanation = ref(false);
     const fallbackEnabled = ref(true);
+    const browserApiAvailable = Boolean(detectFullscreenApi(document));
     const screenfull = useScreenfull({ fallback: "css", restoreFocus: true });
     const run = async (
       label: string,
       action: () => Promise<ScreenfullResult>,
     ) => {
       lastAction.value = label;
+      showMissingTargetExplanation.value =
+        label === "Test missing-target error";
+      screenfull.clearError();
       const result = await action();
+      actionFeedback.value = result.ok
+        ? `${label} completed successfully${result.element ? ` using ${result.mode} mode` : ""}.`
+        : `${label} returned ${result.error.code}: ${result.error.message}`;
       history.value = [
         `${new Date().toLocaleTimeString()} ${label}: ${result.ok ? result.mode : result.error?.code}`,
         ...history.value,
@@ -29,7 +44,7 @@ createApp({
       );
     return () =>
       h("main", [
-        h("header", [
+        h("header", { class: "playground-intro" }, [
           h("p", { class: "eyebrow" }, "Vue 3 · Composition API · SSR safe"),
           h("h1", "vue-screenfull playground"),
           h(
@@ -41,11 +56,31 @@ createApp({
           "section",
           { class: "controls", "aria-label": "Whole page controls" },
           [
-            button("Fullscreen page", () => screenfull.request()),
-            button("Exit", screenfull.exit),
-            button("Invalid target", () =>
-              screenfull.request("#does-not-exist"),
+            h("h2", "Page-level actions"),
+            h("div", { class: "controls__buttons" }, [
+              button("Fullscreen page", () => screenfull.request()),
+              button("Exit fullscreen", screenfull.exit),
+              button("Test missing-target error", () =>
+                screenfull.request("#does-not-exist"),
+              ),
+            ]),
+            h(
+              "p",
+              {
+                class: "action-feedback",
+                role: "status",
+                "aria-live": "polite",
+                "aria-atomic": "true",
+              },
+              actionFeedback.value,
             ),
+            showMissingTargetExplanation.value
+              ? h(
+                  "p",
+                  { class: "error-demo__explanation" },
+                  'The error demo intentionally requests the missing selector "#does-not-exist" so you can inspect an INVALID_TARGET result without opening fullscreen.',
+                )
+              : null,
           ],
         ),
         h("section", { class: "demo-grid" }, [
@@ -67,6 +102,7 @@ createApp({
             }),
             h("h2", "Image-style content"),
             button("View image fullscreen", () => screenfull.request(image)),
+            button("Exit image fullscreen", screenfull.exit),
           ]),
           h("article", { class: "card" }, [
             h("video", {
@@ -81,14 +117,15 @@ createApp({
               "The sample has no remote media; choose fullscreen to verify video-element targeting.",
             ),
             button("View video fullscreen", () => screenfull.request(video)),
+            button("Exit video fullscreen", screenfull.exit),
           ]),
         ]),
-        h("section", { class: "panel", "aria-live": "polite" }, [
+        h("section", { class: "panel" }, [
           h("h2", "Diagnostics"),
           h("dl", [
             h("div", [
               h("dt", "Browser API available"),
-              h("dd", String(Boolean(screenfull.isEnabled.value))),
+              h("dd", String(browserApiAvailable)),
             ]),
             h("div", [
               h("dt", "Native fullscreen enabled"),
@@ -140,11 +177,7 @@ createApp({
             ]),
           ]),
           screenfull.error.value
-            ? h(
-                "p",
-                { role: "alert", class: "error" },
-                screenfull.error.value.message,
-              )
+            ? h("p", { class: "error" }, screenfull.error.value.message)
             : null,
         ]),
         h("section", { class: "panel" }, [
@@ -164,6 +197,13 @@ createApp({
             "p",
             "Migration: screenfull.toggle(element) becomes useScreenfull().toggle(element), with reactive refs and structured results.",
           ),
+        ]),
+        h("footer", [
+          h("h2", "Project documentation"),
+          h("ul", [
+            h("li", [h("a", { href: "../" }, "Project overview")]),
+            h("li", [h("a", { href: "../api/" }, "Public API reference")]),
+          ]),
         ]),
       ]);
   },

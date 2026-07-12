@@ -38,6 +38,7 @@ The published package currently provides:
 
 - CommonJS: `lib/index.cjs.js`
 - ES modules: `lib/index.esm.js`
+- Native Node ES modules: `lib/index.mjs`
 - Browser IIFE: `lib/vue-screenfull.min.js`
 - Root declarations: `lib/index.d.ts`
 - Shared declarations: `lib/typing.d.ts`
@@ -45,6 +46,10 @@ The published package currently provides:
 
 Preserve these formats unless the user requests a packaging change. Keep `package.json` fields,
 Rollup outputs, README examples, and generated files aligned.
+
+Keep the conditional `exports` map aligned with the legacy `main`, `module`, and `types` fields.
+Native Node ESM must resolve to `lib/index.mjs`; pointing it at `index.esm.js` is invalid while the
+package remains CommonJS by default. Preserve the documented legacy bundle subpath exports.
 
 The package intentionally has no runtime dependencies. Vue is a peer dependency and a development
 dependency, and must remain external in Rollup. Put build, test, lint, and documentation tools in
@@ -81,6 +86,8 @@ fallback behavior.
   error event and always remove temporary listeners and timers.
 - Do not emit the same error twice when both a rejected promise and `fullscreenerror` describe one
   managed transition.
+- Isolate consumer callbacks and event listeners. A throwing listener must not reject an action,
+  strand `pending`, or prevent later listeners from observing the transition.
 - `ScreenfullResult` is a discriminated union. Preserve narrowing between `ok: true`/`error: null`
   and `ok: false`/a structured error.
 - CSS fallback is pseudo-fullscreen, never native fullscreen. It must restore every modified inline
@@ -142,6 +149,10 @@ Keep the playground dependent only on public root exports, responsive, keyboard 
 usable with visible native and fallback exit controls. Do not couple the publish build to Webpack or
 make development depend on prebuilt `lib` files.
 
+`npm run build:dev` is the development playground build; `npm run build:playground` is the minified
+production build used by `npm run docs` and Pages. Keep Vue's compile-time feature flags explicit so
+the browser console stays warning-free and production tree-shaking remains effective.
+
 Never edit generated files under `lib`, `dist-dev`, `docs`, or `coverage` as source changes. Rebuild
 them through the owning command when verification needs them.
 
@@ -197,10 +208,22 @@ Update `README.md` when changing:
 TypeDoc configuration lives in `tsconfig.json`. `npm run docs` generates API documentation at
 `./docs/api`, builds the Webpack playground, and runs `scripts/build-pages.js` to create stable Pages
 routes at `/`, `/api/`, and `/playground/`. It uses
-`https://chengchuu.github.io/vue-screenfull/` as its hosted base URL and
+`https://chengchuu.github.io/vue-screenfull/api/` as its TypeDoc hosted base URL and
 `./images/logo-dark-circle-transparent-32x32.png` as the favicon. Keep the hosted URL aligned with
-the matching `homepage` field in `package.json`, and keep the Pages workflow artifact path at
-`docs`. Generated docs and playground assets are output, not hand-maintained source.
+the API route below the matching `homepage` field in `package.json`, and keep the Pages workflow
+artifact path at `docs`. Generated docs and playground assets are output, not hand-maintained source.
+
+SEO source files live under `site`, shared public URLs and descriptions live in
+`scripts/site-config.js`, and `scripts/build-pages.js` copies static files and adds deterministic
+metadata to TypeDoc HTML. Keep root, API, and playground titles, descriptions, canonicals, Open
+Graph data, JSON-LD, `robots.txt`, and `sitemap.xml` synchronized. `npm run docs` runs
+`npm run seo:validate`; do not bypass that validation or edit its generated `docs` targets manually.
+
+The public pages share `site/theme.css` and `site/theme.js`. Theme preference values are `system`,
+`light`, and `dark`, stored under `vue-screenfull-theme`; the TypeDoc bridge mirrors the resolved
+choice into its generated pages. Keep the inline pre-paint initializer small and synchronized across
+the root template, playground template, and API transformation. Mobile navigation must remain
+progressively enhanced, keyboard operable, and usable without hiding links when JavaScript fails.
 
 README changes to browser support must use runtime feature-detection language and distinguish tested
 platforms from documented targets. Do not claim that CSS fallback hides browser/OS UI or that
@@ -221,8 +244,9 @@ small, reversible changes over broad cleanup unrelated to the request.
 
 ## Publishing And CI
 
-The npm publishing workflow is `.github/workflows/publish-npm.yml`. It tests before publishing to
-npm and GitHub Packages, temporarily scopes the package to
+The npm publishing workflow is `.github/workflows/publish-npm.yml`. It tests pull requests to main
+and release branches, but publishes only from pushes to `release/v*` branches. It validates the
+version against existing tags and npm before publishing, temporarily scopes the package to
 `@${{ github.repository_owner }}/vue-screenfull`, restores modified files, and creates a version
 tag.
 

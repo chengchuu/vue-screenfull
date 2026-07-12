@@ -60,7 +60,12 @@ export function useScreenfull(
     );
     error.value = value;
     status.value = doc ? "error" : "unsupported";
-    options.onError?.(value);
+    try {
+      options.onError?.(value);
+    } catch (cause) {
+      if (typeof console !== "undefined")
+        console.error("[vue-screenfull] Listener failed.", cause);
+    }
     return { ok: false, mode: "none", element: null, error: value };
   };
   const resolve = (target?: ScreenfullTarget) => {

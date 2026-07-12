@@ -120,6 +120,13 @@ export default [
         sourcemap: true,
         plugins: iifePlugins,
       },
+      {
+        file: _resolve("../lib/index.mjs"),
+        format: "esm",
+        banner,
+        sourcemap: true,
+        plugins: iifePlugins,
+      },
     ],
     plugins: [clean(), ...plugins],
     external,

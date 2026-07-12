@@ -11,6 +11,13 @@
 Reactive, strongly typed, SSR-safe fullscreen utilities designed for Vue 3.
 The library uses the browser Fullscreen API when available and can optionally provide an explicitly labelled CSS pseudo-fullscreen fallback.
 
+- [Project website](https://chengchuu.github.io/vue-screenfull/)
+- [Live playground](https://chengchuu.github.io/vue-screenfull/playground/)
+- [API documentation](https://chengchuu.github.io/vue-screenfull/api/)
+
+The website, playground, and API documentation support system, light, and dark themes. An explicit
+choice is shared across these pages in local browser storage.
+
 ## Features
 
 - Reactive Composition API state with automatic scope cleanup.
@@ -333,7 +340,7 @@ Root exports:
 - all public target, option, state, result, error, event, component, directive, plugin, and raw-map types
 
 Actions resolve to `{ ok, mode, element, error }`; `mode` is `native`, `fallback`, or `none`.
-Generated TypeDoc is published at `/api/`.
+Generated TypeDoc is published at [chengchuu.github.io/vue-screenfull/api/](https://chengchuu.github.io/vue-screenfull/api/).
 
 ## Live Playground
 
@@ -359,12 +366,13 @@ npm run format:check
 npm run test
 npm run build
 npm run docs
+npm run seo:validate
 npm run preview
 npm pack --dry-run
 ```
 
 See `MANUAL_TESTING.md` for the browser matrix and real-browser strategy.
-Production output remains `lib/index.cjs.js`, `lib/index.esm.js`, `lib/vue-screenfull.min.js`, `lib/index.d.ts`, `lib/typing.d.ts`, and `lib/global.d.ts`.
+Production output remains `lib/index.cjs.js`, `lib/index.esm.js`, `lib/vue-screenfull.min.js`, `lib/index.d.ts`, `lib/typing.d.ts`, and `lib/global.d.ts`. Native Node ESM resolves through the additional conditional entry `lib/index.mjs`.
 
 ## License and Attribution
 

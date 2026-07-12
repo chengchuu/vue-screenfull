@@ -1,5 +1,6 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
+const webpack = require("webpack");
 const _resolve = (_path) => path.resolve(__dirname, _path);
 
 module.exports = {
@@ -15,9 +16,10 @@ module.exports = {
   devServer: {
     port: 8080,
     host: "0.0.0.0",
-    static: {
-      directory: _resolve("../dist-dev"),
-    },
+    static: [
+      { directory: _resolve("../dist-dev") },
+      { directory: _resolve("../site") },
+    ],
     allowedHosts: [".mazey.net"],
   },
   module: {
@@ -34,6 +36,11 @@ module.exports = {
       filename: _resolve("../dist-dev/index.html"),
       template: _resolve("../examples/index.html"),
       inject: true,
+    }),
+    new webpack.DefinePlugin({
+      __VUE_OPTIONS_API__: JSON.stringify(false),
+      __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
+      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false),
     }),
   ],
   resolve: {

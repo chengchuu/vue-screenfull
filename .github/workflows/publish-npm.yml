@@ -5,8 +5,7 @@ env:
   PROJECT_NAME: "vue-screenfull"
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 on:
   # Test on pull requests to main or release branches
@@ -17,7 +16,6 @@ on:
   # Publish on pushes to release branches
   push:
     branches:
-      - main
       - "release/v*"
   workflow_dispatch:
 
@@ -36,19 +34,27 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build package
-        run: npm run build --if-present
+      - name: Run package preview
+        run: npm run preview
 
-      - name: Run tests
-        run: npm test
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Inspect package contents
+        run: npm pack --dry-run
 
   publish:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
+    permissions:
+      contents: write
+      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -58,6 +64,18 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Verify release version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if git rev-parse --verify --quiet "refs/tags/v$VERSION"; then
+            echo "Tag v$VERSION already exists. Bump the package version before publishing."
+            exit 1
+          fi
+          if npm view "${{ env.PROJECT_NAME }}@$VERSION" version >/dev/null 2>&1; then
+            echo "${{ env.PROJECT_NAME }}@$VERSION is already published."
+            exit 1
+          fi
 
       - name: Build package
         run: npm run build --if-present

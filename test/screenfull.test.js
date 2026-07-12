@@ -14,24 +14,31 @@ let requestImplementation;
 
 function installNative(prefix = "standard") {
   const names =
-    prefix === "webkit"
+    prefix === "old-webkit"
       ? [
-          "webkitRequestFullscreen",
-          "webkitExitFullscreen",
-          "webkitFullscreenElement",
-          "webkitFullscreenEnabled",
+          "webkitRequestFullScreen",
+          "webkitCancelFullScreen",
+          "webkitCurrentFullScreenElement",
+          "webkitCancelFullScreen",
         ]
-      : [
-          "requestFullscreen",
-          "exitFullscreen",
-          "fullscreenElement",
-          "fullscreenEnabled",
-        ];
+      : prefix === "webkit"
+        ? [
+            "webkitRequestFullscreen",
+            "webkitExitFullscreen",
+            "webkitFullscreenElement",
+            "webkitFullscreenEnabled",
+          ]
+        : [
+            "requestFullscreen",
+            "exitFullscreen",
+            "fullscreenElement",
+            "fullscreenEnabled",
+          ];
   requestImplementation = async function () {
     activeElement = this;
     document.dispatchEvent(
       new Event(
-        prefix === "webkit" ? "webkitfullscreenchange" : "fullscreenchange",
+        prefix === "standard" ? "fullscreenchange" : "webkitfullscreenchange",
       ),
     );
   };
@@ -41,11 +48,12 @@ function installNative(prefix = "standard") {
   });
   Object.defineProperty(document, names[1], {
     configurable: true,
+    writable: true,
     value: async () => {
       activeElement = null;
       document.dispatchEvent(
         new Event(
-          prefix === "webkit" ? "webkitfullscreenchange" : "fullscreenchange",
+          prefix === "standard" ? "fullscreenchange" : "webkitfullscreenchange",
         ),
       );
     },
@@ -54,23 +62,30 @@ function installNative(prefix = "standard") {
     configurable: true,
     get: () => activeElement,
   });
-  Object.defineProperty(document, names[3], {
-    configurable: true,
-    value: true,
-  });
+  if (names[3] !== names[1]) {
+    Object.defineProperty(document, names[3], {
+      configurable: true,
+      value: true,
+    });
+  }
   return names;
 }
 
 afterEach(() => {
   document.body.innerHTML = "";
+  document.body.removeAttribute("style");
+  document.documentElement.removeAttribute("style");
   activeElement = null;
   for (const name of [
     "requestFullscreen",
     "webkitRequestFullscreen",
+    "webkitRequestFullScreen",
     "exitFullscreen",
     "webkitExitFullscreen",
+    "webkitCancelFullScreen",
     "fullscreenElement",
     "webkitFullscreenElement",
+    "webkitCurrentFullScreenElement",
     "fullscreenEnabled",
     "webkitFullscreenEnabled",
   ]) {
@@ -83,6 +98,7 @@ afterEach(() => {
 test.each([
   ["standard", "requestFullscreen"],
   ["webkit", "webkitRequestFullscreen"],
+  ["old-webkit", "webkitRequestFullScreen"],
 ])("detects the %s Fullscreen API", (prefix, requestName) => {
   installNative(prefix);
   expect(detectFullscreenApi(document).requestFullscreen).toBe(requestName);
@@ -147,6 +163,48 @@ test("emits when native fullscreen switches between similar elements", async () 
   await controller.destroy();
 });
 
+test("switches native targets without exiting fullscreen first", async () => {
+  installNative();
+  const first = document.body.appendChild(document.createElement("div"));
+  const second = document.body.appendChild(document.createElement("div"));
+  const controller = createScreenfullController();
+  await controller.request(first);
+  const exit = jest.spyOn(document, "exitFullscreen");
+  await expect(controller.request(second)).resolves.toMatchObject({
+    ok: true,
+    element: second,
+  });
+  expect(exit).not.toHaveBeenCalled();
+  expect(controller.element).toBe(second);
+  await controller.destroy();
+});
+
+test("exits native fullscreen before falling back during a target switch", async () => {
+  installNative();
+  window.scrollTo = jest.fn();
+  const first = document.body.appendChild(document.createElement("div"));
+  const second = document.body.appendChild(document.createElement("div"));
+  const controller = createScreenfullController({ fallback: "css" });
+  await controller.request(first);
+  const exit = jest.spyOn(document, "exitFullscreen");
+  requestImplementation = async () => {
+    throw new DOMException("Request denied", "NotAllowedError");
+  };
+
+  await expect(controller.request(second)).resolves.toMatchObject({
+    ok: true,
+    mode: "fallback",
+    element: second,
+  });
+  expect(exit).toHaveBeenCalledTimes(1);
+  expect(activeElement).toBeNull();
+  expect(controller.element).toBe(second);
+  expect(controller.isFallback).toBe(true);
+  await controller.exit();
+  expect(controller.isFullscreen).toBe(false);
+  await controller.destroy();
+});
+
 test("rejects detached targets and normalizes denied requests", async () => {
   installNative();
   const controller = createScreenfullController();
@@ -181,6 +239,30 @@ test("prevents overlapping native requests", async () => {
   expect(controller.status).toBe("requesting");
   release();
   await first;
+  await controller.destroy();
+});
+
+test("isolates throwing callbacks without leaving the controller pending", async () => {
+  installNative();
+  const consoleError = jest
+    .spyOn(console, "error")
+    .mockImplementation(() => {});
+  const target = document.body.appendChild(document.createElement("div"));
+  const laterListener = jest.fn();
+  const controller = createScreenfullController({
+    onChange: () => {
+      throw new Error("consumer callback failed");
+    },
+  });
+  controller.on("change", () => {
+    throw new Error("consumer listener failed");
+  });
+  controller.on("change", laterListener);
+  await expect(controller.request(target)).resolves.toMatchObject({ ok: true });
+  expect(controller.status).toBe("fullscreen");
+  expect(laterListener).toHaveBeenCalled();
+  expect(consoleError).toHaveBeenCalled();
+  await expect(controller.exit()).resolves.toMatchObject({ ok: true });
   await controller.destroy();
 });
 
@@ -238,12 +320,56 @@ test("activates CSS fallback and restores styles and body scroll", async () => {
   await controller.destroy();
 });
 
+test("rejects a second CSS fallback without leaking body scroll state", async () => {
+  window.scrollTo = jest.fn();
+  const first = document.body.appendChild(document.createElement("section"));
+  const second = document.body.appendChild(document.createElement("section"));
+  const controllerA = createScreenfullController({ fallback: "css" });
+  const controllerB = createScreenfullController({ fallback: "css" });
+  await expect(controllerA.request(first)).resolves.toMatchObject({
+    ok: true,
+    mode: "fallback",
+  });
+  await expect(controllerB.request(second)).resolves.toMatchObject({
+    ok: false,
+    error: { code: "FALLBACK_FAILED" },
+  });
+  expect(second.style.position).toBe("");
+  await controllerA.exit();
+  expect(document.body.style.overflow).toBe("");
+  await controllerA.destroy();
+  await controllerB.destroy();
+});
+
+test("preserves important styles and a pre-existing fallback class", async () => {
+  window.scrollTo = jest.fn();
+  const target = document.body.appendChild(document.createElement("section"));
+  target.classList.add("existing-fallback");
+  target.style.setProperty("position", "relative", "important");
+  document.body.style.setProperty("overflow", "clip", "important");
+  const controller = createScreenfullController({
+    fallback: "css",
+    fallbackClass: "existing-fallback",
+  });
+  await controller.request(target);
+  expect(target.style.getPropertyValue("position")).toBe("fixed");
+  await controller.exit();
+  expect(target.style.getPropertyValue("position")).toBe("relative");
+  expect(target.style.getPropertyPriority("position")).toBe("important");
+  expect(target.classList.contains("existing-fallback")).toBe(true);
+  expect(document.body.style.getPropertyValue("overflow")).toBe("clip");
+  expect(document.body.style.getPropertyPriority("overflow")).toBe("important");
+  await controller.destroy();
+});
+
 test("resolves elements, Vue refs, component refs, selectors, and defaults", () => {
   const target = document.body.appendChild(document.createElement("div"));
   target.id = "target";
   expect(resolveScreenfullTarget(undefined, document)).toBe(
     document.documentElement,
   );
+  expect(resolveScreenfullTarget(null, document)).toBeNull();
+  expect(resolveScreenfullTarget(ref(null), document)).toBeNull();
   expect(resolveScreenfullTarget("#target", document)).toBe(target);
   expect(resolveScreenfullTarget("[", document)).toBeNull();
   expect(resolveScreenfullTarget(ref(target), document)).toBe(target);
@@ -274,6 +400,40 @@ test("returns a structured invalid-selector error from the composable", async ()
   });
   screenfull.clearError();
   expect(screenfull.error.value).toBeNull();
+  scope.stop();
+});
+
+test("keeps invalid-target results structured when onError throws", async () => {
+  const consoleError = jest
+    .spyOn(console, "error")
+    .mockImplementation(() => {});
+  const scope = effectScope();
+  const screenfull = scope.run(() =>
+    useScreenfull({
+      onError: () => {
+        throw new Error("consumer callback failed");
+      },
+    }),
+  );
+  await expect(screenfull.request("#missing")).resolves.toMatchObject({
+    ok: false,
+    error: { code: "INVALID_TARGET" },
+  });
+  expect(consoleError).toHaveBeenCalled();
+  scope.stop();
+});
+
+test("returns INVALID_TARGET for explicit null instead of fullscreening the page", async () => {
+  installNative();
+  const request = jest.fn(requestImplementation);
+  requestImplementation = request;
+  const scope = effectScope();
+  const screenfull = scope.run(() => useScreenfull());
+  await expect(screenfull.request(null)).resolves.toMatchObject({
+    ok: false,
+    error: { code: "INVALID_TARGET" },
+  });
+  expect(request).not.toHaveBeenCalled();
   scope.stop();
 });
 
@@ -320,6 +480,31 @@ test("renderless component exposes slot actions and directive cleans its click l
   button.click();
   vScreenfull.unmounted(button);
   expect(remove).toHaveBeenCalledWith("click", expect.any(Function));
+});
+
+test("renderless component honors an explicit slot action target", async () => {
+  window.scrollTo = jest.fn();
+  const root = document.body.appendChild(document.createElement("div"));
+  const target = document.body.appendChild(document.createElement("section"));
+  let slot;
+  const app = createApp(() =>
+    h(
+      Screenfull,
+      { fallback: "css" },
+      {
+        default: (value) => {
+          slot = value;
+          return h("span", "slot");
+        },
+      },
+    ),
+  );
+  app.mount(root);
+  await slot.request(target);
+  expect(target.style.position).toBe("fixed");
+  expect(document.documentElement.style.position).toBe("");
+  await slot.exit();
+  app.unmount();
 });
 
 test("directive does not fullscreen the page when its target cannot be resolved", async () => {

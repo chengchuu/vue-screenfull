@@ -58,13 +58,21 @@ export const Screenfull = /*#__PURE__*/ defineComponent({
     const bound = {
       ...screenfull,
       request: (
-        _target?: ScreenfullTarget,
+        target?: ScreenfullTarget,
         requestOptions?: Parameters<typeof screenfull.request>[1],
-      ) => screenfull.request(props.target, requestOptions),
+      ) =>
+        screenfull.request(
+          target === undefined ? props.target : target,
+          requestOptions,
+        ),
       toggle: (
-        _target?: ScreenfullTarget,
+        target?: ScreenfullTarget,
         requestOptions?: Parameters<typeof screenfull.toggle>[1],
-      ) => screenfull.toggle(props.target, requestOptions),
+      ) =>
+        screenfull.toggle(
+          target === undefined ? props.target : target,
+          requestOptions,
+        ),
     };
     return () => slots.default?.(bound);
   },

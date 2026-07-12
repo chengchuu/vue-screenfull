@@ -61,6 +61,15 @@ export function createScreenfullController(
     element: nativeElement() || fallbackElement,
     status: currentStatus,
   });
+  const notify = <T>(listener: ((value: T) => void) | undefined, value: T) => {
+    if (!listener) return;
+    try {
+      listener(value);
+    } catch (cause) {
+      if (typeof console !== "undefined")
+        console.error("[vue-screenfull] Listener failed.", cause);
+    }
+  };
   let lastState: ScreenfullState | null = null;
   let lastFullscreen = state().isFullscreen;
   const emitChange = () => {
@@ -75,8 +84,8 @@ export function createScreenfullController(
     )
       return;
     lastState = value;
-    supplied.onChange?.(value);
-    changes.forEach((listener) => listener(value));
+    notify(supplied.onChange, value);
+    changes.forEach((listener) => notify(listener, value));
   };
   const report = (
     error: ScreenfullError,
@@ -89,8 +98,8 @@ export function createScreenfullController(
           ? "unsupported"
           : "error";
     if (!destroyed) {
-      supplied.onError?.(error);
-      errors.forEach((listener) => listener(error));
+      notify(supplied.onError, error);
+      errors.forEach((listener) => notify(listener, error));
       emitChange();
     }
     if (supplied.debug && typeof console !== "undefined")
@@ -101,8 +110,8 @@ export function createScreenfullController(
     currentStatus = nativeElement() ? "fullscreen" : "idle";
     const value = state();
     if (value.isFullscreen !== lastFullscreen) {
-      if (value.isFullscreen) supplied.onEnter?.(value);
-      else supplied.onExit?.(value);
+      if (value.isFullscreen) notify(supplied.onEnter, value);
+      else notify(supplied.onExit, value);
       lastFullscreen = value.isFullscreen;
     }
     emitChange();
@@ -173,6 +182,15 @@ export function createScreenfullController(
       transition.cleanup();
     }
   };
+  const exitNativeTransition = async (): Promise<void> => {
+    if (!doc || !raw || !nativeElement()) return;
+    const method = (doc as unknown as Record<string, unknown>)[
+      raw.exitFullscreen
+    ];
+    await runNativeTransition(() =>
+      (method as () => PromiseLike<void> | void).call(doc),
+    );
+  };
 
   if (doc && raw) {
     doc.addEventListener(raw.fullscreenchange, onNativeChange);
@@ -214,8 +232,8 @@ export function createScreenfullController(
       currentStatus = "fallback";
       const value = state();
       lastFullscreen = true;
-      supplied.onFallback?.(value);
-      supplied.onEnter?.(value);
+      notify(supplied.onFallback, value);
+      notify(supplied.onEnter, value);
       emitChange();
       return success("fallback", element);
     } catch (cause) {
@@ -279,8 +297,10 @@ export function createScreenfullController(
       if (state().isFullscreen) {
         if (state().element === target)
           return success(fallbackElement ? "fallback" : "native", target);
-        const exited = await api.exit();
-        if (!exited.ok) return exited;
+        if (fallbackElement) {
+          const exited = await api.exit();
+          if (!exited.ok) return exited;
+        }
       }
       previousFocus =
         supplied.restoreFocus === false
@@ -313,8 +333,16 @@ export function createScreenfullController(
           return { ok: false, mode: "none", element: null, error };
         }
         const normalized = normalizeError(cause, "request", doc);
-        if (requestOptions?.fallback || supplied.fallback)
+        if (requestOptions?.fallback || supplied.fallback) {
+          if (nativeElement()) {
+            try {
+              await exitNativeTransition();
+            } catch (exitCause) {
+              return report(normalizeError(exitCause, "exit", doc));
+            }
+          }
           return await enterFallback(target, requestOptions);
+        }
         return report(normalized);
       } finally {
         pending = false;
@@ -352,15 +380,10 @@ export function createScreenfullController(
           currentStatus = "idle";
           const value = state();
           lastFullscreen = false;
-          supplied.onExit?.(value);
+          notify(supplied.onExit, value);
           emitChange();
         } else if (raw && nativeElement()) {
-          const method = (doc as unknown as Record<string, unknown>)[
-            raw.exitFullscreen
-          ];
-          await runNativeTransition(() =>
-            (method as () => PromiseLike<void> | void).call(doc),
-          );
+          await exitNativeTransition();
           currentStatus = nativeElement() ? "fullscreen" : "idle";
           emitChange();
         }

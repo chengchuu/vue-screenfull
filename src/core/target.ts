@@ -6,8 +6,9 @@ export function resolveScreenfullTarget(
   doc?: Document,
 ): Element | null {
   if (!doc) return null;
+  if (target === undefined) return doc.documentElement;
   let value: unknown = isRef(target) ? target.value : target;
-  if (value == null) return doc.documentElement;
+  if (value == null) return null;
   if (typeof value === "string") {
     try {
       return doc.querySelector(value);

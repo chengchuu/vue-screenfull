@@ -1,0 +1,395 @@
+:root {
+  color-scheme: light;
+  --color-background: #f7f8fc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #eef1f8;
+  --color-text: #152033;
+  --color-text-muted: #536078;
+  --color-border: #d4daea;
+  --color-primary: #5b3fd6;
+  --color-primary-hover: #4229b5;
+  --color-primary-soft: #ece8ff;
+  --color-code-background: #111827;
+  --color-code-text: #eef2ff;
+  --color-focus: #e0781b;
+  --color-success: #18794e;
+  --shadow-card: 0 14px 36px rgba(31, 42, 68, 0.09);
+  --content-width: 72rem;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-background: #0d1220;
+  --color-surface: #151c2d;
+  --color-surface-muted: #1d263a;
+  --color-text: #edf1fb;
+  --color-text-muted: #b0bad0;
+  --color-border: #34405a;
+  --color-primary: #a997ff;
+  --color-primary-hover: #c3b7ff;
+  --color-primary-soft: #29234c;
+  --color-code-background: #080c15;
+  --color-code-text: #f0f3ff;
+  --color-focus: #ffb45f;
+  --color-success: #70d5a6;
+  --shadow-card: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-background: #0d1220;
+    --color-surface: #151c2d;
+    --color-surface-muted: #1d263a;
+    --color-text: #edf1fb;
+    --color-text-muted: #b0bad0;
+    --color-border: #34405a;
+    --color-primary: #a997ff;
+    --color-primary-hover: #c3b7ff;
+    --color-primary-soft: #29234c;
+    --color-code-background: #080c15;
+    --color-code-text: #f0f3ff;
+    --color-focus: #ffb45f;
+    --color-success: #70d5a6;
+    --shadow-card: 0 16px 40px rgba(0, 0, 0, 0.28);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-background);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--color-text);
+  background: var(--color-background);
+  line-height: 1.65;
+  overflow-wrap: break-word;
+}
+
+a {
+  color: var(--color-primary);
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+:where(a, button, select, input, textarea):focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+button,
+select {
+  min-height: 2.75rem;
+  font: inherit;
+}
+
+.shell {
+  width: min(var(--content-width), calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.site-header {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--color-border) 85%, transparent);
+  background: var(--color-background);
+  background: color-mix(in srgb, var(--color-background) 92%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.site-header__row {
+  display: flex;
+  align-items: center;
+  min-height: 4.25rem;
+  gap: 1rem;
+}
+
+.brand {
+  flex: none;
+  color: var(--color-text);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 1rem;
+}
+
+.site-nav ul {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.6rem;
+  color: var(--color-text-muted);
+  font-size: 0.94rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.site-nav a:hover {
+  color: var(--color-text);
+}
+
+.site-nav__external {
+  margin-left: auto !important;
+}
+
+.theme-control {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 0.45rem;
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.theme-control select {
+  max-width: 7rem;
+  padding: 0.35rem 1.8rem 0.35rem 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.nav-toggle {
+  display: none;
+  margin-left: auto;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 0.65rem;
+  color: #fff;
+  background: #5134ca;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+:root[data-theme="dark"] .button-link {
+  color: #101528;
+  background: var(--color-primary);
+}
+
+.button-link:hover {
+  color: #fff;
+  background: var(--color-primary-hover);
+}
+
+:root[data-theme="dark"] .button-link:hover {
+  color: #101528;
+}
+
+.button-link--secondary {
+  color: var(--color-text);
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}
+
+.button-link--secondary:hover {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.eyebrow {
+  color: var(--color-primary);
+  font:
+    750 0.78rem ui-monospace,
+    SFMono-Regular,
+    Consolas,
+    monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+  color: var(--color-code-text);
+  background: var(--color-code-background);
+  scrollbar-color: var(--color-primary) var(--color-code-background);
+}
+
+[id] {
+  scroll-margin-top: 5.5rem;
+}
+
+.vue-screenfull-project-links {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  gap: 0.5rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+}
+
+.vue-screenfull-project-links > * {
+  flex: none;
+}
+
+.vue-screenfull-project-links .theme-control {
+  margin-left: auto;
+}
+
+@media (max-width: 900px) {
+  [data-nav-enhanced="true"] .nav-toggle {
+    display: inline-flex;
+  }
+
+  .site-header__row {
+    flex-wrap: wrap;
+    padding-block: 0.65rem;
+  }
+
+  .site-nav {
+    flex-basis: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .site-nav ul {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .site-nav a {
+    width: 100%;
+    padding-inline: 0;
+  }
+
+  .site-nav__external {
+    margin-left: 0 !important;
+  }
+
+  [data-nav-enhanced="true"] .site-nav:not([data-open="true"]) {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .vue-screenfull-project-links a:not(:first-child) {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .shell {
+    width: auto;
+    margin-inline: 0.625rem;
+  }
+
+  .theme-control span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+
+.tsd-typography table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* TypeDoc bridge */
+:root[data-theme="light"] {
+  --light-color-background: var(--color-background);
+  --light-color-background-secondary: var(--color-surface-muted);
+  --light-color-background-active: var(--color-primary-soft);
+  --light-color-text: var(--color-text);
+  --light-color-text-aside: var(--color-text-muted);
+  --light-color-link: var(--color-primary);
+  --light-color-focus-outline: var(--color-focus);
+}
+
+:root[data-theme="dark"] {
+  --dark-color-background: var(--color-background);
+  --dark-color-background-secondary: var(--color-surface-muted);
+  --dark-color-background-active: var(--color-primary-soft);
+  --dark-color-text: var(--color-text);
+  --dark-color-text-aside: var(--color-text-muted);
+  --dark-color-link: var(--color-primary);
+  --dark-color-focus-outline: var(--color-focus);
+}
+
+@media (max-width: 900px) {
+  .vue-screenfull-project-links {
+    gap: 0.35rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
