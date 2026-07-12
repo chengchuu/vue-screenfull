@@ -15,9 +15,6 @@ The library uses the browser Fullscreen API when available and can optionally pr
 - [Live playground](https://chengchuu.github.io/vue-screenfull/playground/)
 - [API documentation](https://chengchuu.github.io/vue-screenfull/api/)
 
-The website, playground, and API documentation support system, light, and dark themes. An explicit
-choice is shared across these pages in local browser storage.
-
 ## Features
 
 - Reactive Composition API state with automatic scope cleanup.

@@ -1,6 +1,6 @@
 {
   "name": "vue-screenfull",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Reactive, strongly typed, SSR-safe fullscreen utilities for Vue 3.",
   "main": "lib/index.cjs.js",
   "module": "lib/index.esm.js",
