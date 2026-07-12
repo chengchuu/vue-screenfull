@@ -37,7 +37,7 @@ support across the documented OS/browser matrix; that matrix remains unverified.
 | `node --check scripts/change-package-name.js` | Pass                         | Rename helper parses without mutation.                                                                                                                                   |
 | `node --check scripts/build-pages.js`         | Pass                         | Pages assembly script parses.                                                                                                                                            |
 | Strict temporary consumer                     | Pass after fix               | Root types with `skipLibCheck: false`, ESM, CJS, and SSR state passed against the exact tarball.                                                                         |
-| Narrow Rollup consumer                        | Pass                         | `packageInfo`-only second pass produced a 256-byte bundle; unused controller/component/fallback code was removed.                                                        |
+| Narrow Rollup consumer                        | Pass                         | A narrow named-import second pass removed unused controller, component, and fallback code.                                                                               |
 | Browser IIFE smoke test                       | Pass                         | IIFE exposed `VUE_SCREENFULL` and a callable default plugin with Vue external.                                                                                           |
 | Source-map inspection                         | Pass                         | CJS, ESM, and IIFE maps parsed and included matching `sources`/`sourcesContent`.                                                                                         |
 | Generated Pages browser test                  | Pass                         | Root routes, relative playground asset, responsive 390×844 layout, visible exits, invalid-target alert, and no horizontal overflow verified in the in-app browser.       |
@@ -1167,8 +1167,7 @@ conditions even when capability detection succeeds. See
 - Vue remains a peer dependency and Rollup external; no undeclared Babel helper import was found.
 - The exact packed artifact passes strict root declaration checking with `skipLibCheck: false`.
 - `lib/index.d.ts` references `global.d.ts`, whose generated footer preserves external-module status.
-- Pure annotations survive minification; the narrow second Rollup pass removes unused Vue layers and
-  produces a 256-byte test bundle.
+- Pure annotations survive minification; the narrow second Rollup pass removes unused Vue layers.
 - The IIFE requires global `Vue` and exposes `VUE_SCREENFULL`, matching README guidance.
 - The package contains 15 intended files. The added `.mjs` entry and source map raise packed size from
   approximately 61.9 KiB to 85.5 KiB; this is the cost of preserving old filenames while providing

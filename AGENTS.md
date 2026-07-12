@@ -65,8 +65,10 @@ When changing a public function, value, or type, check all of these together:
 - usage in `examples` and `README.md`;
 - generated declarations and bundles from `npm run build`.
 
-`packageInfo.version` is currently a literal value in `src/index.ts`. Keep it synchronized with
-`package.json` when changing the version unless the version source is deliberately redesigned.
+Do not add a runtime `packageInfo` export or hard-coded package version to `src/index.ts`. Package
+metadata belongs in `package.json`; the existing npm scripts pass `$npm_package_version` to Rollup
+for generated bundle banners. Consumers that need metadata can use the explicitly exported
+`vue-screenfull/package.json` subpath.
 
 ## Runtime Architecture And Invariants
 
