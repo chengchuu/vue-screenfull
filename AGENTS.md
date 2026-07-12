@@ -93,6 +93,9 @@ fallback behavior.
 - CSS fallback is pseudo-fullscreen, never native fullscreen. It must restore every modified inline
   style, body overflow, scroll position, focus where practical, classes, and listeners on exit or
   disposal.
+- Native and CSS fallback modes must not remain active together. When a native request for a new
+  target fails while another target is already natively fullscreen, exit the existing native session
+  before entering fallback; if that exit fails, return the structured exit failure instead.
 - Destroying a controller during a pending fallback must clean up if the fallback finishes later and
   must not notify disposed Vue scopes.
 
@@ -148,6 +151,11 @@ Webpack owns the local playground and development server. `npm run dev` serves i
 Keep the playground dependent only on public root exports, responsive, keyboard accessible, and
 usable with visible native and fallback exit controls. Do not couple the publish build to Webpack or
 make development depend on prebuilt `lib` files.
+
+Playground actions must use labels that explain their outcome or purpose. Error demonstrations must
+not rely on users reading the diagnostics table: show the structured result in the nearby
+`action-feedback` live region. Keep the missing-target explanation conditional on activating
+`Test missing-target error`, render it after `action-feedback`, and hide it when another action runs.
 
 `npm run build:dev` is the development playground build; `npm run build:playground` is the minified
 production build used by `npm run docs` and Pages. Keep Vue's compile-time feature flags explicit so
