@@ -1,13 +1,45 @@
-const SITE_URL = "https://chengchuu.github.io/vue-screenfull/";
+const pkg = require("../package.json");
+
+const SITE_URL = new URL(pkg.homepage).href;
+const SITE_BASE = new URL(SITE_URL).pathname;
+const FAVICON_FILE = "logo-dark-circle-transparent-32x32.png";
+const PWA_ICONS = [
+  {
+    file: "logo-dark-circle-transparent-192x192.png",
+    sizes: "192x192",
+    type: "image/png",
+    purpose: "any",
+  },
+  {
+    file: "logo-dark-circle-transparent-512x512.png",
+    sizes: "512x512",
+    type: "image/png",
+    purpose: "any",
+  },
+  {
+    file: "logo-dark-circle-transparent-maskable-512x512.png",
+    sizes: "512x512",
+    type: "image/png",
+    purpose: "maskable",
+  },
+];
 
 module.exports = Object.freeze({
   SITE_URL,
+  SITE_BASE,
   API_URL: `${SITE_URL}api/`,
   PLAYGROUND_URL: `${SITE_URL}playground/`,
   GITHUB_URL: "https://github.com/chengchuu/vue-screenfull",
   NPM_URL: "https://www.npmjs.com/package/vue-screenfull",
-  FAVICON_URL:
-    "https://i.mazey.net/icon/fav/logo-dark-circle-transparent-32x32.png",
+  FAVICON_FILE,
+  FAVICON_URL: `${SITE_BASE}images/${FAVICON_FILE}`,
+  MANIFEST_URL: `${SITE_BASE}manifest.webmanifest`,
+  SERVICE_WORKER_URL: `${SITE_BASE}service-worker.js`,
+  THEME_COLOR: "#5b3fd6",
+  BACKGROUND_COLOR: "#f7f8fc",
+  PWA_ICONS,
+  PWA_NAME: "vue-screenfull documentation",
+  PWA_SHORT_NAME: "vue-screenfull",
   ROOT_TITLE: "vue-screenfull - Vue 3 Fullscreen API Utilities",
   ROOT_DESCRIPTION:
     "Reactive, strongly typed fullscreen utilities for Vue 3, including composables, a component, directive, plugin, structured errors, and an optional CSS fallback.",
