@@ -310,10 +310,10 @@
         >
           <ul>
             <li><a href="./">Home</a></li>
+            <li><a href="./playground/">Playground</a></li>
             <li><a href="#features">Features</a></li>
             <li><a href="#installation">Installation</a></li>
-            <li><a href="#basic-usage">Basic usage</a></li>
-            <li><a href="./playground/">Playground</a></li>
+            <li><a href="#basic-usage">Usage</a></li>
             <li><a href="./api/">API</a></li>
           </ul>
           <ul class="site-nav__external">
@@ -429,10 +429,7 @@
             </article>
             <article class="feature">
               <h3>Optional CSS fallback</h3>
-              <p>
-                Use an explicitly labelled pseudo-fullscreen mode when native
-                fullscreen is unavailable or rejected.
-              </p>
+              <p>An optional CSS pseudo-fullscreen fallback is available.</p>
             </article>
           </div>
         </div>
@@ -441,7 +438,7 @@
       <section id="basic-usage" class="section">
         <div class="shell">
           <div class="section-heading">
-            <p class="eyebrow">Basic usage</p>
+            <p class="eyebrow">Usage</p>
             <h2>Toggle a target from a user gesture</h2>
             <p>
               Fullscreen requests can still be rejected by browser activation or
@@ -577,6 +574,21 @@ const { isEnabled, isFullscreen, error, toggle } =
       </section>
     </main>
 
+    <section class="pwa-install-help" data-pwa-install-help>
+      <div class="shell">
+        <h2>Install the project website</h2>
+        <p>
+          Use your browser menu to install this documentation site. Installation
+          and native fullscreen are separate capabilities.
+        </p>
+        <span data-pwa-install-container hidden>
+          <button type="button" data-pwa-install hidden disabled>
+            Install app
+          </button>
+        </span>
+      </div>
+    </section>
+
     <footer class="site-footer">
       <div class="shell site-footer__row">
         <strong>vue-screenfull</strong>
@@ -612,18 +624,6 @@ const { isEnabled, isFullscreen, error, toggle } =
         >
       </div>
     </footer>
-    <section class="pwa-install-help shell" data-pwa-install-help>
-      <h2>Install the project website</h2>
-      <p>
-        Use your browser menu to install this documentation site. Installation
-        and native fullscreen are separate capabilities.
-      </p>
-      <span data-pwa-install-container hidden>
-        <button type="button" data-pwa-install hidden disabled>
-          Install app
-        </button>
-      </span>
-    </section>
     <aside
       class="pwa-update"
       aria-label="Website update"

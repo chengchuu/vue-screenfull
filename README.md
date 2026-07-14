@@ -9,7 +9,7 @@
 [license-url]: https://github.com/chengchuu/vue-screenfull/blob/main/LICENSE
 
 Reactive, strongly typed, SSR-safe fullscreen utilities designed for Vue 3.
-The library uses the browser Fullscreen API when available and can optionally provide an explicitly labelled CSS pseudo-fullscreen fallback.
+An optional CSS pseudo-fullscreen fallback is also available.
 
 - [Project website](https://chengchuu.github.io/vue-screenfull/)
 - [Live playground](https://chengchuu.github.io/vue-screenfull/playground/)
