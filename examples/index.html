@@ -12,11 +12,11 @@
       rel="canonical"
       href="https://chengchuu.github.io/vue-screenfull/playground/"
     />
-    <link
-      rel="icon"
-      type="image/png"
-      href="https://i.mazey.net/icon/fav/logo-dark-circle-transparent-32x32.png"
-    />
+    <link rel="icon" type="image/png" href="<%= FAVICON_URL %>" />
+    <% if (MANIFEST_URL) { %>
+    <link rel="manifest" href="<%= MANIFEST_URL %>" />
+    <% } %>
+    <meta name="theme-color" content="#5b3fd6" />
     <link rel="stylesheet" href="../theme.css" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="vue-screenfull" />
@@ -345,5 +345,18 @@
       Fullscreen API examples. The project documentation remains available from
       the <a href="../">main vue-screenfull website</a>.</noscript
     >
+    <aside
+      class="pwa-update"
+      aria-label="Website update"
+      data-pwa-update
+      hidden
+    >
+      <span
+        >A new website version is available. Updating reloads this playground
+        only after you approve.</span
+      >
+      <button type="button" data-pwa-update-now>Update now</button>
+    </aside>
+    <p class="pwa-status" role="status" aria-live="polite" data-pwa-status></p>
   </body>
 </html>

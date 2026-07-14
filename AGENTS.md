@@ -23,7 +23,11 @@ Keep the package generic, browser-friendly, and easy to rename. Preserve the pac
 - `MANUAL_TESTING.md`: repeatable real-browser and operating-system matrix.
 - `scripts/rollup.config.mjs`: production JavaScript and declaration builds.
 - `scripts/webpack.config.dev.js`: development/demo build and dev server.
-- `scripts/build-pages.js`: combines the generated API docs and playground into the Pages artifact.
+- `site/pwa.ts` and `site/pwa/`: browser-native install handling and Workbox-window lifecycle UX.
+- `site/service-worker.ts`: Workbox v7 service worker source for scoped routing and caching.
+- `scripts/build-pages.js`: combines the generated site and API docs, emits manifest assets, and
+  runs Workbox `injectManifest` against the final Pages artifact.
+- `scripts/validate-pwa.js`: validates the generated manifest, icons, page metadata, and worker.
 - `scripts/change-package-name.js`: automation helper that changes only the package name.
 - `lib`: generated publish output; do not edit it by hand.
 - `dist-dev`, `docs`, and `coverage`: generated development, documentation, and test output.
@@ -227,7 +231,17 @@ SEO source files live under `site`, shared public URLs and descriptions live in
 `scripts/site-config.js`, and `scripts/build-pages.js` copies static files and adds deterministic
 metadata to TypeDoc HTML. Keep root, API, and playground titles, descriptions, canonicals, Open
 Graph data, JSON-LD, `robots.txt`, and `sitemap.xml` synchronized. `npm run docs` runs
-`npm run seo:validate`; do not bypass that validation or edit its generated `docs` targets manually.
+`npm run seo:validate` and `npm run pwa:validate`; do not bypass those validations or edit generated
+`docs` targets manually.
+
+The website PWA is scoped to `/vue-screenfull/`. Keep all Workbox packages on the same v7 release
+and in `devDependencies`. Webpack bundles the TypeScript worker and `injectManifest` runs only after
+the homepage, playground, and TypeDoc tree are assembled. Documents, scripts, and styles are
+bounded network-first; local images and fonts are bounded cache-first. Do not unconditionally call
+`skipWaiting()`: page-side `workbox-window` controls send `SKIP_WAITING` only after user approval.
+A generated `site-version.json` fingerprints deployable Pages content so meaningful site changes
+produce a waiting worker without precaching unversioned bundles. Normal `npm run dev` must keep
+production worker registration disabled.
 
 The public pages share `site/theme.css` and `site/theme.js`. Theme preference values are `system`,
 `light`, and `dark`, stored under `vue-screenfull-theme`; the TypeDoc bridge mirrors the resolved
