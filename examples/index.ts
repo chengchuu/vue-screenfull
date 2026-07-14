@@ -49,7 +49,7 @@ createApp({
           h("h1", "vue-screenfull playground"),
           h(
             "p",
-            "Try native fullscreen and the clearly labelled CSS pseudo-fullscreen fallback.",
+            "Try fullscreen controls for pages, elements, images, and videos.",
           ),
         ]),
         h(

@@ -180,12 +180,13 @@ select {
 }
 
 .theme-control select {
-  max-width: 7rem;
-  padding: 0.3rem 0.6rem 0.3rem 0.6rem;
+  max-width: 5rem;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.3rem;
   border: 1px solid var(--color-border);
   border-radius: 0.55rem;
   color: var(--color-text);
-  background: var(--color-surface);
+  background: transparent;
 }
 
 .nav-toggle {
@@ -257,6 +258,7 @@ select {
 
 .pwa-install-help {
   padding-block: 1.5rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .pwa-install-help h2 {
@@ -404,6 +406,10 @@ pre {
   display: block;
   max-width: 100%;
   overflow-x: auto;
+}
+
+.tsd-toolbar-contents > a.title {
+  padding-left: 0.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
