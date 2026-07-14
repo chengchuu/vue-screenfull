@@ -351,6 +351,25 @@ npm run dev
 
 Native fullscreen automation is intentionally not treated as universally reliable because browsers enforce user activation.
 
+## Installable Documentation Website
+
+The project website is a Progressive Web App scoped to `/vue-screenfull/`. Its homepage,
+playground, and API documentation share a generated manifest and a Google Workbox v7 service
+worker. Documents, scripts, and styles use bounded network-first caches so current documentation
+normally wins without pairing fresh HTML with stale bundles; local images and fonts use bounded
+cache-first storage. A precached offline page is used only when a requested document is unavailable
+from both the network and runtime cache.
+
+Installation uses the browser's native `beforeinstallprompt` flow when available. The site never
+opens that prompt automatically, and browsers without a custom prompt can use their menu or, on
+iOS/iPadOS Safari, **Share → Add to Home Screen**. Installing this website is separate from the
+Fullscreen API and does not grant fullscreen capability.
+
+Worker updates remain user-controlled. When a new version is waiting, choose **Update now** to
+activate it and reload the current page once. On the playground, this explicit action is the only
+update path that reloads an active session. The generated worker includes a final-artifact version
+marker, so deployable website changes can be detected without precaching unversioned bundles.
+
 ## Development
 
 Node.js 22 is used in CI.
@@ -364,9 +383,13 @@ npm run test
 npm run build
 npm run docs
 npm run seo:validate
+npm run pwa:validate
 npm run preview
 npm pack --dry-run
 ```
+
+Normal `npm run dev` does not register the production worker. Build `npm run docs` and serve the
+generated `docs` directory from localhost under `/vue-screenfull/` for production-like PWA testing.
 
 See `MANUAL_TESTING.md` for the browser matrix and real-browser strategy.
 Production output remains `lib/index.cjs.js`, `lib/index.esm.js`, `lib/vue-screenfull.min.js`, `lib/index.d.ts`, `lib/typing.d.ts`, and `lib/global.d.ts`. Native Node ESM resolves through the additional conditional entry `lib/index.mjs`.

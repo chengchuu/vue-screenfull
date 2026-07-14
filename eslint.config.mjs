@@ -18,7 +18,12 @@ export default tseslint.config(
     files: ["**/*.{ts,tsx}"],
   })),
   {
-    files: ["src/**/*.{ts,tsx}", "types/**/*.d.ts", "examples/**/*.{ts,tsx}"],
+    files: [
+      "src/**/*.{ts,tsx}",
+      "types/**/*.d.ts",
+      "examples/**/*.{ts,tsx}",
+      "site/**/*.{ts,tsx}",
+    ],
     languageOptions: {
       globals: globals.browser,
     },
@@ -27,6 +32,12 @@ export default tseslint.config(
     files: ["site/**/*.js"],
     languageOptions: {
       globals: globals.browser,
+    },
+  },
+  {
+    files: ["site/service-worker.ts"],
+    languageOptions: {
+      globals: globals.serviceworker,
     },
   },
   {

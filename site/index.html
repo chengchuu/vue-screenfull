@@ -9,11 +9,11 @@
       content="Reactive, strongly typed fullscreen utilities for Vue 3, including composables, a component, directive, plugin, structured errors, and an optional CSS fallback."
     />
     <link rel="canonical" href="https://chengchuu.github.io/vue-screenfull/" />
-    <link
-      rel="icon"
-      type="image/png"
-      href="https://i.mazey.net/icon/fav/logo-dark-circle-transparent-32x32.png"
-    />
+    <link rel="icon" type="image/png" href="<%= FAVICON_URL %>" />
+    <% if (MANIFEST_URL) { %>
+    <link rel="manifest" href="<%= MANIFEST_URL %>" />
+    <% } %>
+    <meta name="theme-color" content="#5b3fd6" />
     <link rel="stylesheet" href="./theme.css" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="vue-screenfull" />
@@ -612,5 +612,27 @@ const { isEnabled, isFullscreen, error, toggle } =
         >
       </div>
     </footer>
+    <section class="pwa-install-help shell" data-pwa-install-help>
+      <h2>Install the project website</h2>
+      <p>
+        Use your browser menu to install this documentation site. Installation
+        and native fullscreen are separate capabilities.
+      </p>
+      <span data-pwa-install-container hidden>
+        <button type="button" data-pwa-install hidden disabled>
+          Install app
+        </button>
+      </span>
+    </section>
+    <aside
+      class="pwa-update"
+      aria-label="Website update"
+      data-pwa-update
+      hidden
+    >
+      <span>A new website version is available.</span>
+      <button type="button" data-pwa-update-now>Update now</button>
+    </aside>
+    <p class="pwa-status" role="status" aria-live="polite" data-pwa-status></p>
   </body>
 </html>

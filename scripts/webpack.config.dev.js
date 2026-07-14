@@ -1,17 +1,38 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const path = require("path");
+const path = require("node:path");
 const webpack = require("webpack");
+const {
+  FAVICON_FILE,
+  MANIFEST_URL,
+  SERVICE_WORKER_URL,
+  SITE_BASE,
+} = require("./site-config");
 const _resolve = (_path) => path.resolve(__dirname, _path);
+const productionPages = process.env.GITHUB_PAGES === "true";
+const publicPath = productionPages ? SITE_BASE : "/";
+const pwaConfig = {
+  appName: "vue-screenfull",
+  enabled: productionPages || process.env.PWA_ENABLED === "true",
+  scope: SITE_BASE,
+  url: SERVICE_WORKER_URL,
+};
 
 module.exports = {
   mode: "development",
   entry: {
-    index: _resolve("../examples/index.ts"),
+    pwa: _resolve("../site/pwa.ts"),
+    playground: _resolve("../examples/index.ts"),
+    ...(pwaConfig.enabled
+      ? {
+          "service-worker-source": _resolve("../site/service-worker.ts"),
+        }
+      : {}),
   },
   output: {
     clean: true,
-    filename: "[name].js",
+    filename: "assets/[name].js",
     path: _resolve("../dist-dev"),
+    publicPath,
   },
   devServer: {
     port: 8080,
@@ -19,6 +40,8 @@ module.exports = {
     static: [
       { directory: _resolve("../dist-dev") },
       { directory: _resolve("../site") },
+      { directory: _resolve("../images"), publicPath: "/images" },
+      { directory: _resolve("../docs") },
     ],
     allowedHosts: [".mazey.net"],
   },
@@ -33,11 +56,28 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      filename: _resolve("../dist-dev/index.html"),
+      filename: "index.html",
+      template: _resolve("../site/index.html"),
+      chunks: ["pwa"],
+      inject: "body",
+      templateParameters: {
+        FAVICON_URL: `${publicPath}images/${FAVICON_FILE}`,
+        MANIFEST_URL: productionPages ? MANIFEST_URL : null,
+      },
+    }),
+    new HtmlWebpackPlugin({
+      filename: "playground/index.html",
       template: _resolve("../examples/index.html"),
-      inject: true,
+      chunks: ["pwa", "playground"],
+      inject: "body",
+      templateParameters: {
+        FAVICON_URL: `${publicPath}images/${FAVICON_FILE}`,
+        MANIFEST_URL: productionPages ? MANIFEST_URL : null,
+      },
     }),
     new webpack.DefinePlugin({
+      __PWA_SCOPE__: JSON.stringify(SITE_BASE),
+      __SITE_PWA_CONFIG__: JSON.stringify(pwaConfig),
       __VUE_OPTIONS_API__: JSON.stringify(false),
       __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
       __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false),
@@ -45,5 +85,8 @@ module.exports = {
   ],
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
+  },
+  optimization: {
+    runtimeChunk: false,
   },
 };
