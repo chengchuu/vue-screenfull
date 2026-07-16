@@ -320,6 +320,30 @@ test("activates CSS fallback and restores styles and body scroll", async () => {
   await controller.destroy();
 });
 
+test.each([
+  ["document root", () => document.documentElement],
+  ["body", () => document.body],
+])("keeps a %s CSS fallback scrollable", async (_label, getTarget) => {
+  window.scrollTo = jest.fn();
+  document.body.style.setProperty("overflow", "visible", "important");
+  const target = getTarget();
+  const controller = createScreenfullController({ fallback: "css" });
+
+  await expect(controller.request(target)).resolves.toMatchObject({
+    ok: true,
+    mode: "fallback",
+  });
+  expect(target.style.getPropertyValue("overflow")).toBe("auto");
+  expect(target.style.getPropertyPriority("overflow")).toBe("important");
+  expect(document.body.style.getPropertyValue("overflow")).not.toBe("hidden");
+
+  await controller.exit();
+  expect(document.body.style.getPropertyValue("overflow")).toBe("visible");
+  expect(document.body.style.getPropertyPriority("overflow")).toBe("important");
+  expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
+  await controller.destroy();
+});
+
 test("rejects a second CSS fallback without leaking body scroll state", async () => {
   window.scrollTo = jest.fn();
   const first = document.body.appendChild(document.createElement("section"));

@@ -146,8 +146,9 @@ const { request, exit, isFallback } = useScreenfull({
 ```
 
 CSS fallback fixes an `HTMLElement` to the visual viewport, preserves every inline style it changes,
-locks and restores body scrolling, preserves the scroll position, adds the configured class,
-exits on Escape when possible, and restores focus. Cleanup also runs when its Vue scope is disposed.
+locks and restores background body scrolling for element targets, keeps whole-page targets scrollable,
+preserves the scroll position, adds the configured class, exits on Escape when possible, and restores
+focus. Cleanup also runs when its Vue scope is disposed.
 It is pseudo-fullscreen: it cannot hide address bars, browser controls, notifications,
 or operating-system UI. Keep an accessible exit button inside the target:
 
