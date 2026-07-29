@@ -10,7 +10,9 @@ test("API metadata transformation is complete and idempotent", () => {
   expect(transformed).toContain(`<link rel="canonical" href="${API_URL}"/>`);
   expect(transformed).toContain(`<a href="${SITE_URL}">Project home</a>`);
   expect(transformed).toContain('href="../theme.css"');
-  expect(transformed).toContain('src="../theme.js"');
+  expect(transformed).toContain('src="../assets/theme.js"');
+  expect(transformed).toContain("data-theme-color-light=");
+  expect(transformed).toContain("data-theme-color-dark=");
   expect(transformed.match(/<h1\b/g)).toHaveLength(1);
   expect(transformed).not.toContain('document.body.style.display="none"');
   expect(() =>

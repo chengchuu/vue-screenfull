@@ -5,6 +5,7 @@ const {
   PWA_ICONS,
   SERVICE_WORKER_URL,
   SITE_BASE,
+  THEME_CONFIG,
 } = require("./site-config");
 
 const root = path.resolve(__dirname, "..");
@@ -82,6 +83,11 @@ function validatePwa({ rootDir = root } = {}) {
       failures.push(`${file} does not link the manifest`);
     if (!html.includes('name="theme-color"'))
       failures.push(`${file} is missing theme-color metadata`);
+    if (
+      !html.includes(`data-theme-color-light="${THEME_CONFIG.colorLight}"`) ||
+      !html.includes(`data-theme-color-dark="${THEME_CONFIG.colorDark}"`)
+    )
+      failures.push(`${file} is missing resolved theme-color metadata`);
     if (!html.includes("data-pwa-update-now"))
       failures.push(`${file} is missing update controls`);
     if (!html.includes("data-pwa-status"))

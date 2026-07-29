@@ -243,11 +243,13 @@ A generated `site-version.json` fingerprints deployable Pages content so meaning
 produce a waiting worker without precaching unversioned bundles. Normal `npm run dev` must keep
 production worker registration disabled.
 
-The public pages share `site/theme.css` and `site/theme.js`. Theme preference values are `system`,
-`light`, and `dark`, stored under `vue-screenfull-theme`; the TypeDoc bridge mirrors the resolved
-choice into its generated pages. Keep the inline pre-paint initializer small and synchronized across
-the root template, playground template, and API transformation. Mobile navigation must remain
-progressively enhanced, keyboard operable, and usable without hiding links when JavaScript fails.
+The public pages share `site/theme.css` and the Webpack entry `site/theme-entry.ts`, which bundles
+`site/theme.ts` to `assets/theme.js`. Theme preference values are `system`, `light`, and `dark`,
+stored under `vue-screenfull-theme`; the TypeDoc bridge mirrors the resolved choice into its
+generated pages. Keep the synchronous head-loaded theme bundle and its metadata synchronized across
+the root template, playground template, and API transformation so it can apply the initial theme
+before CSS paints. Mobile navigation must remain progressively enhanced, keyboard operable, and
+usable without hiding links when JavaScript fails.
 
 README changes to browser support must use runtime feature-detection language and distinguish tested
 platforms from documented targets. Do not claim that CSS fallback hides browser/OS UI or that
