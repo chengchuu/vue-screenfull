@@ -58,6 +58,9 @@ importers:
       lint-staged:
         specifier: ^17.0.8
         version: 17.0.8
+      mazey:
+        specifier: ^5.6.0
+        version: 5.6.0
       prettier:
         specifier: ^3.9.5
         version: 3.9.5
@@ -5648,6 +5651,12 @@ packages:
         integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==,
       }
     engines: { node: ">= 0.4" }
+
+  mazey@5.6.0:
+    resolution:
+      {
+        integrity: sha512-Jr/Zeo4u6A42P40QCPIGeTMiu60FbggrpdJvzBVWlyPfGpKIdLuUe6oNSfBwdBChLLXi4noBG86PwVAsNfVN5g==,
+      }
 
   mdurl@2.0.0:
     resolution:
@@ -11689,6 +11698,8 @@ snapshots:
       uc.micro: 2.1.0
 
   math-intrinsics@1.1.0: {}
+
+  mazey@5.6.0: {}
 
   mdurl@2.0.0: {}
 

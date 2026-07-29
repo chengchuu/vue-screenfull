@@ -10,6 +10,7 @@ const {
   ROOT_DESCRIPTION,
   ROOT_TITLE,
   SITE_URL,
+  THEME_CONFIG,
 } = require("./site-config");
 
 const root = path.resolve(__dirname, "..");
@@ -154,6 +155,12 @@ function validatePage({
     fail(`${label}: missing shared theme stylesheet ${expectedThemeHref}`);
   if (!attribute(html, "script", "src", expectedThemeScript))
     fail(`${label}: missing shared theme script ${expectedThemeScript}`);
+  const themeColor = attribute(html, "meta", "name", "theme-color");
+  if (
+    themeColor?.["data-theme-color-light"] !== THEME_CONFIG.colorLight ||
+    themeColor?.["data-theme-color-dark"] !== THEME_CONFIG.colorDark
+  )
+    fail(`${label}: theme-color metadata is missing resolved theme colors`);
   if (!/<select\b[^>]*data-theme-select/.test(html))
     fail(`${label}: missing accessible theme selector`);
   if (
@@ -204,8 +211,14 @@ function validateApiPages() {
       fail(`API ${relative}: missing favicon`);
     if (!attribute(html, "link", "href", `${assetPrefix}theme.css`))
       fail(`API ${relative}: missing shared theme stylesheet`);
-    if (!attribute(html, "script", "src", `${assetPrefix}theme.js`))
+    if (!attribute(html, "script", "src", `${assetPrefix}assets/theme.js`))
       fail(`API ${relative}: missing shared theme script`);
+    const themeColor = attribute(html, "meta", "name", "theme-color");
+    if (
+      themeColor?.["data-theme-color-light"] !== THEME_CONFIG.colorLight ||
+      themeColor?.["data-theme-color-dark"] !== THEME_CONFIG.colorDark
+    )
+      fail(`API ${relative}: missing resolved theme-color metadata`);
     const h1s = matches(html, /<h1\b[^>]*>([\s\S]*?)<\/h1>/gi);
     if (h1s.length !== 1 || !visibleText(h1s[0][1]))
       fail(`API ${relative}: expected exactly one non-empty h1`);
@@ -222,7 +235,7 @@ function validateApiPages() {
 function validateStaticFiles() {
   const robotsPath = path.join(docs, "robots.txt");
   const sitemapPath = path.join(docs, "sitemap.xml");
-  for (const asset of ["theme.css", "theme.js"]) {
+  for (const asset of ["theme.css", "assets/theme.js"]) {
     if (!existsSync(path.join(docs, asset)))
       fail(`${asset}: missing from Pages artifact`);
   }
@@ -277,7 +290,7 @@ function validateSite() {
       expectedTitle: ROOT_TITLE,
       expectedDescription: ROOT_DESCRIPTION,
       expectedThemeHref: "./theme.css",
-      expectedThemeScript: "./theme.js",
+      expectedThemeScript: "./assets/theme.js",
       requireNavigationToggle: true,
     }),
     validatePage({
@@ -289,7 +302,7 @@ function validateSite() {
       expectedTitle: PLAYGROUND_TITLE,
       expectedDescription: PLAYGROUND_DESCRIPTION,
       expectedThemeHref: "../theme.css",
-      expectedThemeScript: "../theme.js",
+      expectedThemeScript: "../assets/theme.js",
       requireNavigationToggle: true,
     }),
     validatePage({
@@ -301,7 +314,7 @@ function validateSite() {
       expectedTitle: API_TITLE,
       expectedDescription: API_DESCRIPTION,
       expectedThemeHref: "../theme.css",
-      expectedThemeScript: "../theme.js",
+      expectedThemeScript: "../assets/theme.js",
     }),
   ].filter(Boolean);
   const titles = pages.map((page) => page.title);

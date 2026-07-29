@@ -25,7 +25,7 @@
     sans-serif;
 }
 
-:root[data-theme="dark"] {
+:root[data-bs-theme="dark"] {
   color-scheme: dark;
   --color-background: #0d1220;
   --color-surface: #151c2d;
@@ -44,7 +44,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) {
     color-scheme: dark;
     --color-background: #0d1220;
     --color-surface: #151c2d;
@@ -215,7 +215,7 @@ select {
   text-decoration: none;
 }
 
-:root[data-theme="dark"] .button-link {
+:root[data-bs-theme="dark"] .button-link {
   color: #101528;
   background: var(--color-primary);
 }
@@ -225,7 +225,7 @@ select {
   background: var(--color-primary-hover);
 }
 
-:root[data-theme="dark"] .button-link:hover {
+:root[data-bs-theme="dark"] .button-link:hover {
   color: #101528;
 }
 
@@ -428,7 +428,7 @@ pre {
 }
 
 /* TypeDoc bridge */
-:root[data-theme="light"] {
+:root[data-bs-theme="light"] {
   --light-color-background: var(--color-background);
   --light-color-background-secondary: var(--color-surface-muted);
   --light-color-background-active: var(--color-primary-soft);
@@ -438,7 +438,7 @@ pre {
   --light-color-focus-outline: var(--color-focus);
 }
 
-:root[data-theme="dark"] {
+:root[data-bs-theme="dark"] {
   --dark-color-background: var(--color-background);
   --dark-color-background-secondary: var(--color-surface-muted);
   --dark-color-background-active: var(--color-primary-soft);
