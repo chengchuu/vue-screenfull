@@ -55,10 +55,10 @@ Keep the conditional `exports` map aligned with the legacy `main`, `module`, and
 Native Node ESM must resolve to `lib/index.mjs`; pointing it at `index.esm.js` is invalid while the
 package remains CommonJS by default. Preserve the documented legacy bundle subpath exports.
 
-The package intentionally has no runtime dependencies. Vue is a peer dependency and a development
-dependency, and must remain external in Rollup. Put build, test, lint, and documentation tools in
-`devDependencies`. Do not add a fullscreen wrapper such as `screenfull` as a dependency; compatibility
-logic belongs in this package.
+Mazey is the package's shared runtime utility dependency; verify its installed public contracts
+before reuse. Vue is a peer dependency and a development dependency, and must remain external in
+Rollup. Put build, test, lint, and documentation tools in `devDependencies`. Do not add a fullscreen
+wrapper such as `screenfull` as a dependency; compatibility logic belongs in this package.
 
 When changing a public function, value, or type, check all of these together:
 

@@ -116,30 +116,11 @@ so Mazey's browser bundle remains import-safe.
   function getPngDimensions(data: Uint8Array): ImageDimensions;
   ```
 
-## 6. `resolveElementTarget`
-
-- **Purpose:** Resolve a direct element, selector, ref-like value, or component-like `$el` value
-  against a supplied query root.
-- **Why it is reusable:** `resolveScreenfullTarget` is shared by the composable and directive, but
-  its behavior is useful to other Vue-oriented DOM packages such as popovers, observers, focus
-  managers, and teleport helpers. An adapter keeps the generalized helper independent of Vue.
-- **Proposed generalized API:**
-
-  ```ts
-  interface ResolveElementTargetOptions {
-    root: ParentNode;
-    defaultElement?: Element | null;
-    unwrap?: (value: unknown) => unknown;
-  }
-
-  function resolveElementTarget(
-    target: unknown,
-    options: ResolveElementTargetOptions,
-  ): Element | null;
-  ```
-
 ## Overlaps not recommended for extraction
 
+- `resolveScreenfullTarget` now delegates generic target resolution to Mazey's
+  `resolveElementTarget`; keep only the Vue unwrap adapter and fullscreen-specific public boundary
+  locally.
 - `isStandaloneMode` overlaps Mazey's existing `isStandalonePWA`; reuse the public utility instead.
 - `shouldRegisterServiceWorker` overlaps `isSafePWAEnv`; keep only project-specific enablement and
   worker-scope policy locally.
