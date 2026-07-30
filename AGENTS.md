@@ -20,7 +20,7 @@ Keep the package generic, browser-friendly, and easy to rename. Preserve the pac
 - `test`: Node and jsdom Jest tests for public behavior.
 - `type-tests`: compile-time checks for public root imports and narrowing.
 - `examples`: accessible Webpack playground and diagnostics UI.
-- `MANUAL_TESTING.md`: repeatable real-browser and operating-system matrix.
+- `guides/MANUAL_TESTING.md`: repeatable real-browser and operating-system matrix.
 - `scripts/rollup.config.mjs`: production JavaScript and declaration builds.
 - `scripts/webpack.config.dev.js`: development/demo build and dev server.
 - `site/pwa.ts` and `site/pwa/`: browser-native install handling and Workbox-window lifecycle UX.
@@ -202,7 +202,7 @@ manifest, not only whether Rollup exits successfully.
 Use `@jest-environment node` for import/SSR checks and `@jest-environment jsdom` for DOM, Vue,
 directive, component, and compatibility behavior. Native user-gesture fullscreen is not reliable in
 headless CI; test browser-name mapping and transition logic with deterministic fakes, then document
-real-browser coverage in `MANUAL_TESTING.md`. Keep `type-tests/public.ts` checking result narrowing
+real-browser coverage in `guides/MANUAL_TESTING.md`. Keep `type-tests/public.ts` checking result narrowing
 and root-only consumer imports.
 
 Do not run `scripts/change-package-name.js` casually during verification because it mutates

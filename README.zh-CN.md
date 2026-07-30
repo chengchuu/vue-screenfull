@@ -351,7 +351,7 @@ npm pack --dry-run
 
 常规的 `npm run dev` 不会注册生产环境 Worker。若要在类似生产环境中测试 PWA，请运行 `npm run docs`。然后在 localhost 的 `/vue-screenfull/` 路径下提供生成的 `docs` 目录。
 
-有关浏览器矩阵和真实浏览器测试策略，请参阅 `MANUAL_TESTING.md`。生产输出仍包含以下文件:
+有关浏览器矩阵和真实浏览器测试策略，请参阅 [`guides/MANUAL_TESTING.md`](./guides/MANUAL_TESTING.md)。生产输出仍包含以下文件:
 
 - `lib/index.cjs.js`
 - `lib/index.esm.js`

@@ -23,7 +23,7 @@
   "files": [
     "lib",
     "README.md",
-    "MANUAL_TESTING.md",
+    "guides/MANUAL_TESTING.md",
     "LICENSE"
   ],
   "scripts": {
