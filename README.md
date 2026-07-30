@@ -392,7 +392,7 @@ npm pack --dry-run
 Normal `npm run dev` does not register the production worker. Build `npm run docs` and serve the
 generated `docs` directory from localhost under `/vue-screenfull/` for production-like PWA testing.
 
-See `MANUAL_TESTING.md` for the browser matrix and real-browser strategy.
+See [`guides/MANUAL_TESTING.md`](./guides/MANUAL_TESTING.md) for the browser matrix and real-browser strategy.
 Production output remains `lib/index.cjs.js`, `lib/index.esm.js`, `lib/vue-screenfull.min.js`, `lib/index.d.ts`, `lib/typing.d.ts`, and `lib/global.d.ts`. Native Node ESM resolves through the additional conditional entry `lib/index.mjs`.
 
 ## License and Attribution

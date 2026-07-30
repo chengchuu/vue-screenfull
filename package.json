@@ -1,6 +1,6 @@
 {
   "name": "vue-screenfull",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Reactive, strongly typed, SSR-safe fullscreen utilities for Vue 3.",
   "main": "lib/index.cjs.js",
   "module": "lib/index.esm.js",
@@ -23,7 +23,7 @@
   "files": [
     "lib",
     "README.md",
-    "MANUAL_TESTING.md",
+    "guides/MANUAL_TESTING.md",
     "LICENSE"
   ],
   "scripts": {
@@ -90,7 +90,6 @@
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.2.0",
     "lint-staged": "^17.0.8",
-    "mazey": "^5.6.0",
     "prettier": "^3.9.5",
     "rollup": "^4.62.2",
     "rollup-plugin-dts": "^6.4.1",
@@ -115,5 +114,8 @@
   },
   "peerDependencies": {
     "vue": "^3.3.0"
+  },
+  "dependencies": {
+    "mazey": "5.6.2"
   }
 }

@@ -398,6 +398,7 @@ test("resolves elements, Vue refs, component refs, selectors, and defaults", () 
   expect(resolveScreenfullTarget("[", document)).toBeNull();
   expect(resolveScreenfullTarget(ref(target), document)).toBe(target);
   expect(resolveScreenfullTarget(ref({ $el: target }), document)).toBe(target);
+  expect(resolveScreenfullTarget({ nodeType: 1 }, document)).toBeNull();
 });
 
 test("composable instances synchronize through document events and clean up with scopes", async () => {
