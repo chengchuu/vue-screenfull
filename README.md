@@ -21,7 +21,8 @@ pseudo-fullscreen fallback.
 - Standard, WebKit, Mozilla, and Microsoft-prefixed API detection.
 - Vue template refs, component refs, elements, and safe CSS selectors.
 - Structured results and actionable errors instead of swallowed rejections.
-- Renderless component, directive, optional plugin, and framework-light controller.
+- Renderless component, directive, optional plugin, and framework-neutral controller.
+- Vue-free browser entry for npm, native browser modules, and classic scripts.
 
 ## Installation
 
@@ -30,7 +31,81 @@ npm install vue-screenfull
 ```
 
 The browser bundle is `lib/vue-screenfull.min.js`. It exposes `VUE_SCREENFULL` and expects Vue to be
-available as the global `Vue`.
+available as the global `Vue`. Vue is optional only at package-installation level; imports from the
+package root still require Vue 3 at runtime.
+
+### Vue-free browser entry
+
+Use `vue-screenfull/browser` when the caller does not own a Vue root. This subpath exports only
+`createScreenfullController`, `detectFullscreenApi`, and their framework-neutral types. It does not
+load Vue or Mazey at runtime.
+
+With npm:
+
+```ts
+import { createScreenfullController } from "vue-screenfull/browser";
+
+const controller = createScreenfullController({ restoreFocus: true });
+const target = document.querySelector("#player");
+const button = document.querySelector("#toggle-fullscreen");
+const toggle = () => controller.toggle(target);
+
+button?.addEventListener("click", toggle);
+
+async function dispose() {
+  button?.removeEventListener("click", toggle);
+  await controller.destroy();
+}
+
+// Call dispose() when the integration is disposed.
+```
+
+As a native browser ES module:
+
+```html
+<script type="module">
+  import { createScreenfullController } from "https://cdn.jsdelivr.net/npm/vue-screenfull/lib/browser.mjs";
+
+  const controller = createScreenfullController();
+  const target = document.querySelector("#player");
+  const button = document.querySelector("#toggle-fullscreen");
+  const toggle = () => controller.toggle(target);
+
+  button?.addEventListener("click", toggle);
+
+  async function dispose() {
+    button?.removeEventListener("click", toggle);
+    await controller.destroy();
+  }
+
+  // Call dispose() when the integration is disposed.
+</script>
+```
+
+As a classic script:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/vue-screenfull/lib/vue-screenfull.browser.min.js"></script>
+<script>
+  const controller = VUE_SCREENFULL_BROWSER.createScreenfullController();
+  const target = document.querySelector("#player");
+  const button = document.querySelector("#toggle-fullscreen");
+  const toggle = () => controller.toggle(target);
+
+  button?.addEventListener("click", toggle);
+
+  function dispose() {
+    button?.removeEventListener("click", toggle);
+    return controller.destroy();
+  }
+
+  // Call dispose() when the integration is disposed.
+</script>
+```
+
+Call `request` or `toggle` directly from a click, keyboard, or touch handler because browsers
+normally require transient user activation. Retain the controller and call `destroy()` when the
+integration is disposed so its listeners and any active CSS fallback are cleaned up.
 
 ## Basic Usage
 
@@ -204,10 +279,10 @@ their names. Named composable imports do not require plugin installation and rem
 
 ## Advanced Usage
 
-The framework-light controller is useful for migration and non-component integrations:
+The framework-neutral controller is useful for migration and non-component integrations:
 
 ```ts
-import { createScreenfullController } from "vue-screenfull";
+import { createScreenfullController } from "vue-screenfull/browser";
 
 const controller = createScreenfullController({ restoreFocus: true });
 const onChange = (state) => console.log(state.isFullscreen, state.element);
@@ -343,6 +418,9 @@ Root exports:
 - `detectFullscreenApi(document)` and `resolveScreenfullTarget(target, document)`
 - all public target, option, state, result, error, event, component, directive, plugin, and raw-map types
 
+The `vue-screenfull/browser` subpath exports `createScreenfullController`, `detectFullscreenApi`,
+and only framework-neutral controller types.
+
 Actions resolve to `{ ok, mode, element, error }`. The `mode` value is `native`, `fallback`, or
 `none`. Generated TypeDoc is published at
 [chengchuu.github.io/vue-screenfull/api/](https://chengchuu.github.io/vue-screenfull/api/).
@@ -403,9 +481,10 @@ Normal `npm run dev` does not register the production worker. Build `npm run doc
 generated `docs` directory from localhost under `/vue-screenfull/` for production-like PWA testing.
 
 See [`guides/MANUAL_TESTING.md`](./guides/MANUAL_TESTING.md) for the browser matrix and real-browser
-strategy. Production output remains `lib/index.cjs.js`, `lib/index.esm.js`,
-`lib/vue-screenfull.min.js`, `lib/index.d.ts`, `lib/typing.d.ts`, and `lib/global.d.ts`. Native Node
-ESM resolves through the additional conditional entry `lib/index.mjs`.
+strategy. The root entry produces `lib/index.cjs.js`, `lib/index.esm.js`, `lib/index.mjs`,
+`lib/vue-screenfull.min.js`, `lib/index.d.ts`, `lib/typing.d.ts`, and `lib/global.d.ts`. The
+framework-neutral entry produces `lib/browser.cjs.js`, `lib/browser.esm.js`, `lib/browser.mjs`,
+`lib/browser.d.ts`, and `lib/vue-screenfull.browser.min.js`. JavaScript bundles include source maps.
 
 ## License and Attribution
 

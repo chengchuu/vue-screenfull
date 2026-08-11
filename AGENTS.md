@@ -13,7 +13,9 @@ Keep the package generic, browser-friendly, and easy to rename. Preserve the pac
 ## Project Shape
 
 - `src/index.ts`: package entrypoint and supported root exports.
-- `src/core`: framework-light Fullscreen API detection, controller, target, error, and fallback logic.
+- `src/browser.ts`: framework-neutral browser subpath entrypoint.
+- `src/core`: Fullscreen API detection, controller, target, types, error, and fallback logic.
+- `src/core/typing.ts`: framework-neutral controller types shared by both public entries.
 - `src/composables`: reactive Vue APIs and scope cleanup.
 - `src/components`, `src/directives`, and `src/plugin`: optional Vue integration layers.
 - `src/typing.ts`: public TypeScript interfaces and type aliases.
@@ -52,6 +54,11 @@ The published package currently provides:
 - ES modules: `lib/index.esm.js`
 - Native Node ES modules: `lib/index.mjs`
 - Browser IIFE: `lib/vue-screenfull.min.js`
+- Framework-neutral CommonJS: `lib/browser.cjs.js`
+- Framework-neutral bundler ESM: `lib/browser.esm.js`
+- Framework-neutral native ESM: `lib/browser.mjs`
+- Framework-neutral browser IIFE: `lib/vue-screenfull.browser.min.js`
+- Framework-neutral declarations: `lib/browser.d.ts`
 - Root declarations: `lib/index.d.ts`
 - Shared declarations: `lib/typing.d.ts`
 - Global augmentations: `lib/global.d.ts`
@@ -66,14 +73,17 @@ package remains CommonJS by default. Preserve the documented legacy bundle subpa
 `mazey` is the package's runtime utility dependency. `src/core/target.ts` delegates generic target
 resolution to `resolveElementTarget`, while `site/theme.ts` uses Mazey's theme preference and media
 query helpers. Verify installed Mazey exports, declarations, implementation, and tests before adding
-another reuse. Vue is a peer dependency and a development dependency. Rollup keeps both Vue and
+another reuse. Vue is an optional peer dependency and a development dependency. Rollup keeps both Vue and
 Mazey external for module outputs, but the browser IIFE bundles Mazey and expects only the global
-`Vue`. Do not add a fullscreen wrapper such as `screenfull`; compatibility logic belongs here.
+`Vue`. The `vue-screenfull/browser` module and `VUE_SCREENFULL_BROWSER` IIFE contain no Vue or Mazey
+runtime import. Optional peer metadata supports Vue-free subpath consumers; package-root APIs still
+require Vue at runtime. Do not add a fullscreen wrapper such as `screenfull`; compatibility logic
+belongs here.
 
 When changing a public function, value, or type, check all of these together:
 
 - exports and implementation in `src/index.ts`;
-- declarations in `src/typing.ts` and `types/global.d.ts`;
+- declarations in `src/core/typing.ts`, `src/typing.ts`, and `types/global.d.ts`;
 - tests under `test`;
 - compile-time coverage under `type-tests`;
 - usage in `examples`, `README.md`, and `README.zh-CN.md`;

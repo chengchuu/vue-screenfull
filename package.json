@@ -1,6 +1,6 @@
 {
   "name": "vue-screenfull",
-  "version": "1.0.10",
+  "version": "1.1.0",
   "description": "Reactive, strongly typed, SSR-safe fullscreen utilities for Vue 3.",
   "main": "lib/index.cjs.js",
   "module": "lib/index.esm.js",
@@ -12,6 +12,15 @@
       "require": "./lib/index.cjs.js",
       "default": "./lib/index.mjs"
     },
+    "./browser": {
+      "types": "./lib/browser.d.ts",
+      "import": "./lib/browser.mjs",
+      "require": "./lib/browser.cjs.js",
+      "default": "./lib/browser.mjs"
+    },
+    "./lib/browser.cjs.js": "./lib/browser.cjs.js",
+    "./lib/browser.esm.js": "./lib/browser.esm.js",
+    "./lib/vue-screenfull.browser.min.js": "./lib/vue-screenfull.browser.min.js",
     "./lib/index.cjs.js": "./lib/index.cjs.js",
     "./lib/index.esm.js": "./lib/index.esm.js",
     "./lib/vue-screenfull.min.js": "./lib/vue-screenfull.min.js",
@@ -33,6 +42,7 @@
     "build:dev": "webpack --config ./scripts/webpack.config.dev.js",
     "build:playground": "cross-env GITHUB_PAGES=true webpack --mode production --config ./scripts/webpack.config.dev.js",
     "test": "jest",
+    "test:package": "node scripts/test-browser-package.js",
     "test:coverage": "jest --coverage",
     "typecheck": "tsc --noEmit",
     "docs": "typedoc --out ./docs/api --readme ./README.md --excludeProtected --excludePrivate --excludeInternal --hideGenerator && npm run build:playground && node scripts/build-pages.js && npm run seo:validate && npm run pwa:validate",
@@ -42,7 +52,7 @@
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "preview": "npm run typecheck && npm run lint && npm run build && npm run test",
+    "preview": "npm run typecheck && npm run lint && npm run build && npm run test && npm run test:package",
     "release": "npm run preview && npm publish",
     "prepare": "husky"
   },
@@ -114,6 +124,11 @@
   },
   "peerDependencies": {
     "vue": "^3.3.0"
+  },
+  "peerDependenciesMeta": {
+    "vue": {
+      "optional": true
+    }
   },
   "dependencies": {
     "mazey": "5.6.2"
