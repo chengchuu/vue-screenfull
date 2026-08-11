@@ -8,8 +8,8 @@
 [license-image]: https://img.shields.io/npm/l/vue-screenfull.svg
 [license-url]: https://github.com/chengchuu/vue-screenfull/blob/main/LICENSE
 
-Reactive, strongly typed, SSR-safe fullscreen utilities designed for Vue 3.
-An optional CSS pseudo-fullscreen fallback is also available.
+Reactive, strongly typed, and SSR-safe fullscreen utilities for Vue 3, with an optional CSS
+pseudo-fullscreen fallback.
 
 - [Project website](https://chengchuu.github.io/vue-screenfull/)
 - [Live playground](https://chengchuu.github.io/vue-screenfull/playground/)
@@ -22,8 +22,6 @@ An optional CSS pseudo-fullscreen fallback is also available.
 - Vue template refs, component refs, elements, and safe CSS selectors.
 - Structured results and actionable errors instead of swallowed rejections.
 - Renderless component, directive, optional plugin, and framework-light controller.
-- No fullscreen wrapper or other runtime dependency; Vue remains a peer dependency.
-- CJS, ESM, browser IIFE, source maps, and declarations.
 
 ## Installation
 
@@ -31,17 +29,8 @@ An optional CSS pseudo-fullscreen fallback is also available.
 npm install vue-screenfull
 ```
 
-The browser bundle is `lib/vue-screenfull.min.js`, exposes `VUE_SCREENFULL`, and expects Vue to be available as the global `Vue`.
-
-## Browser Support
-
-Support is feature-detected at runtime. Current Chrome, Edge, Firefox, and Safari desktop releases,
-Chrome/Firefox/Samsung Internet on Android, and Safari on iPadOS commonly expose the API. iPhone
-Safari, Android/iOS WebViews, managed devices, and embedded documents may restrict arbitrary-element
-fullscreen. This policy describes targets, not a guarantee for every OS/browser release.
-
-Native fullscreen can hide more browser UI, but the browser and operating system retain control.
-The CSS fallback only fills the visual viewport and never claims to hide system or browser chrome.
+The browser bundle is `lib/vue-screenfull.min.js`. It exposes `VUE_SCREENFULL` and expects Vue to be
+available as the global `Vue`.
 
 ## Basic Usage
 
@@ -65,8 +54,8 @@ const { isEnabled, isFullscreen, error, toggle } = useScreenfull();
 </template>
 ```
 
-Call `request` or `toggle` directly inside a click, keyboard, or touch handler.
-Browsers normally require transient user activation and can reject even when `isEnabled.value` is true.
+Call `request` or `toggle` directly from a click, keyboard, or touch handler. Browsers normally
+require transient user activation and can reject a request even when `isEnabled.value` is true.
 
 ## Fullscreen a Specific Element
 
@@ -86,7 +75,8 @@ const { request, isFullscreen } = useScreenfullTarget(panel);
 ```
 
 `useScreenfull().request()` with no target opens `document.documentElement`.
-A selector such as `request("#player")` is resolved with `document.querySelector`; invalid or unmatched selectors return `INVALID_TARGET`.
+A selector such as `request("#player")` is resolved with `document.querySelector`. Invalid or
+unmatched selectors return `INVALID_TARGET`.
 
 ## Toggle Fullscreen
 
@@ -104,8 +94,9 @@ Some mobile browsers offer video-only fullscreen independently of arbitrary-elem
 <button type="button" @click="exit">Exit fullscreen</button>
 ```
 
-Always include a visible exit button, particularly when fallback is enabled. Escape often exits,
-but browser Escape behavior cannot be overridden reliably. Exits initiated by browser UI are reflected through native change events.
+Always include a visible exit button, particularly when fallback is enabled. Escape often exits
+fullscreen, but its browser behavior cannot be overridden reliably. Native change events reflect
+exits initiated through the browser UI.
 
 ## Check Support
 
@@ -145,18 +136,20 @@ const { request, exit, isFallback } = useScreenfull({
 });
 ```
 
-CSS fallback fixes an `HTMLElement` to the visual viewport, preserves every inline style it changes,
-locks and restores background body scrolling for element targets, keeps whole-page targets scrollable,
-preserves the scroll position, adds the configured class, exits on Escape when possible, and restores
-focus. Cleanup also runs when its Vue scope is disposed.
-It is pseudo-fullscreen: it cannot hide address bars, browser controls, notifications,
-or operating-system UI. Keep an accessible exit button inside the target:
+CSS fallback fixes an `HTMLElement` to the visual viewport and preserves every inline style that it
+changes. For element targets, it locks and restores background body scrolling. It keeps whole-page
+targets scrollable, preserves the scroll position, adds the configured class, exits on Escape when
+possible, and restores focus. Cleanup also runs when its Vue scope is disposed.
+
+This mode is pseudo-fullscreen. It cannot hide address bars, browser controls, notifications, or
+operating-system UI. Keep an accessible exit button inside the target:
 
 ```vue
 <button type="button" @click="exit">Close full-page view</button>
 ```
 
-A custom fallback implements `enter(context)` and `exit(context)` and is responsible for complete cleanup.
+A custom fallback implements `enter(context)` and `exit(context)` and is responsible for complete
+cleanup.
 
 ## Component Usage
 
@@ -174,8 +167,8 @@ A custom fallback implements `enter(context)` and `exit(context)` and is respons
 </Screenfull>
 ```
 
-The renderless component emits `change`, `enter`, `exit`, `error`, and `fallback`.
-Its default slot receives all composable refs and actions; it imposes no visual system.
+The renderless component emits `change`, `enter`, `exit`, `error`, and `fallback`. Its default slot
+receives all composable refs and actions without imposing a visual system.
 
 ## Directive Usage
 
@@ -206,8 +199,8 @@ import App from "./App.vue";
 createApp(App).use(VueScreenfull).mount("#app");
 ```
 
-This registers `Screenfull` and `v-screenfull`. Names can be changed with `componentName` and `directiveName`.
-Named composable imports never require plugin installation and remain tree-shakable.
+This registers `Screenfull` and `v-screenfull`. Use `componentName` and `directiveName` to change
+their names. Named composable imports do not require plugin installation and remain tree-shakable.
 
 ## Advanced Usage
 
@@ -224,10 +217,10 @@ controller.off("change", onChange);
 await controller.destroy();
 ```
 
-`raw` is a read-only diagnostic mapping of detected browser property/event names, or `null`.
-It is not the recommended API. Each composable creates one controller and disposes it with its Vue scope;
-multiple controllers synchronize through the same document's native events.
-Importing the package does not register listeners or touch the DOM.
+`raw` is a read-only diagnostic mapping of detected browser property and event names, or `null`. It
+is not the recommended API. Each composable creates one controller and disposes it with its Vue
+scope. Multiple controllers synchronize through the same document's native events. Importing the
+package does not register listeners or touch the DOM.
 
 Reactive callbacks can observe changes without duplicate component wiring:
 
@@ -236,7 +229,8 @@ useScreenfull({ onEnter: announce, onExit: announce, onError: report });
 ```
 
 `restoreFocus: true` (the default) focuses the initiating element after exit where practical.
-`exitOnRouteChange` listens for browser `popstate`; router-specific navigation can instead call `exit()` in the application's own route hook.
+`exitOnRouteChange` listens for browser `popstate`. For router-specific navigation, call `exit()`
+from the application's route hook instead.
 
 ## iframe Usage
 
@@ -250,9 +244,9 @@ The embedding page controls permission. A typical iframe is:
 ></iframe>
 ```
 
-Permissions Policy or a missing iframe permission can still reject.
-The library returns `IFRAME_PERMISSION_REQUIRED` when a denial can be associated with an embedded document;
-it cannot override the parent page's policy.
+A Permissions Policy restriction or missing iframe permission can still reject the request. The
+library returns `IFRAME_PERMISSION_REQUIRED` when it can associate a denial with an embedded
+document. It cannot override the parent page's policy.
 
 ## Mobile Considerations
 
@@ -263,10 +257,21 @@ it cannot override the parent page's policy.
 - Native navigation, tab switching, app switching, and OS gestures may exit fullscreen.
 - Neither native capability nor this library guarantees browser/OS controls disappear.
 
+## Browser Support
+
+Support is detected at runtime. Current desktop releases of Chrome, Edge, Firefox, and Safari
+commonly expose the API. Chrome, Firefox, and Samsung Internet on Android and Safari on iPadOS also
+commonly expose it. iPhone Safari, Android and iOS WebViews, managed devices, and embedded documents
+may restrict arbitrary-element fullscreen. This policy identifies support targets; it does not
+guarantee support in every browser or operating-system release.
+
+Native fullscreen can hide more browser UI, but the browser and operating system retain control.
+The CSS fallback only fills the visual viewport and never claims to hide system or browser chrome.
+
 ## SSR and Nuxt
 
 Imports are safe in Vite SSR, Nuxt 3, Node tests, and static generation. Outside a browser,
-`isEnabled` is false, status is `unsupported`, and actions return `NOT_IN_BROWSER`.
+`isEnabled` is `false`, the status is `unsupported`, and actions return `NOT_IN_BROWSER`.
 
 ```vue
 <script setup lang="ts">
@@ -286,16 +291,16 @@ const screenfull = useScreenfull(); // safe during Nuxt setup/SSR
 </template>
 ```
 
-When destructuring refs in `<script setup>`, templates unwrap them automatically;
-when accessing through an object as above, use `.value` in script expressions.
+Templates automatically unwrap refs destructured in `<script setup>`. When accessing refs through
+an object as shown in the example, use `.value` in script expressions.
 
 ## Migrating from screenfull
 
-`vue-screenfull` is an independent Vue 3 library inspired by screenfull's public API and compatibility goals.
-It is not drop-in compatible and is not endorsed by screenfull's maintainers.
+`vue-screenfull` is an independent Vue 3 library inspired by screenfull's public API and
+compatibility goals. It is not drop-in compatible and is not endorsed by screenfull's maintainers.
 
 | screenfull concept                     | vue-screenfull equivalent                               |
-| -------------------------------------- | ------------------------------------------------------- |
+| :------------------------------------- | :------------------------------------------------------ |
 | `screenfull.request(element, options)` | `request(element, options)`                             |
 | `screenfull.exit()`                    | `exit()`                                                |
 | `screenfull.toggle(element, options)`  | `toggle(element, options)`                              |
@@ -323,9 +328,10 @@ if (isEnabled.value) {
 }
 ```
 
-Key differences are reactive refs, automatic lifecycle cleanup, SSR-safe imports, structured results/errors, optional pseudo-fullscreen, and Vue component/directive APIs.
-Controller listeners receive typed state/errors rather than raw DOM events.
-Legacy `onchange`/`onerror` aliases are not provided. The plugin is optional.
+Key differences include reactive refs, automatic lifecycle cleanup, SSR-safe imports, structured
+results and errors, optional pseudo-fullscreen, and Vue component and directive APIs. Controller
+listeners receive typed state and errors instead of raw DOM events. Legacy `onchange` and `onerror`
+aliases are not provided. The plugin is optional.
 
 ## API Reference
 
@@ -337,39 +343,43 @@ Root exports:
 - `detectFullscreenApi(document)` and `resolveScreenfullTarget(target, document)`
 - all public target, option, state, result, error, event, component, directive, plugin, and raw-map types
 
-Actions resolve to `{ ok, mode, element, error }`; `mode` is `native`, `fallback`, or `none`.
-Generated TypeDoc is published at [chengchuu.github.io/vue-screenfull/api/](https://chengchuu.github.io/vue-screenfull/api/).
+Actions resolve to `{ ok, mode, element, error }`. The `mode` value is `native`, `fallback`, or
+`none`. Generated TypeDoc is published at
+[chengchuu.github.io/vue-screenfull/api/](https://chengchuu.github.io/vue-screenfull/api/).
 
 ## Live Playground
 
-The deployed playground is at [chengchuu.github.io/vue-screenfull/playground/](https://chengchuu.github.io/vue-screenfull/playground/).
-It includes page, element, image-style, and video targets; explicit exit; diagnostics;
-invalid-target feedback; event history; accessibility, iframe, mobile, and migration notes. Run it locally with:
+The deployed playground is available at
+[chengchuu.github.io/vue-screenfull/playground/](https://chengchuu.github.io/vue-screenfull/playground/).
+It includes page, element, image-style, and video targets; explicit exit controls; diagnostics;
+invalid-target feedback; event history; and accessibility, iframe, mobile, and migration notes. Run
+it locally with:
 
 ```bash
 npm run dev
 ```
 
-Native fullscreen automation is intentionally not treated as universally reliable because browsers enforce user activation.
+Native fullscreen automation is intentionally not treated as universally reliable because browsers
+enforce user activation.
 
 ## Installable Documentation Website
 
-The project website is a Progressive Web App scoped to `/vue-screenfull/`. Its homepage,
-playground, and API documentation share a generated manifest and a Google Workbox v7 service
-worker. Documents, scripts, and styles use bounded network-first caches so current documentation
-normally wins without pairing fresh HTML with stale bundles; local images and fonts use bounded
-cache-first storage. A precached offline page is used only when a requested document is unavailable
-from both the network and runtime cache.
+The project website is a Progressive Web App scoped to `/vue-screenfull/`. Its homepage, playground,
+and API documentation share a generated manifest and a Google Workbox v7 service worker. Documents,
+scripts, and styles use bounded network-first caches. This strategy normally prioritizes current
+documentation without pairing fresh HTML with stale bundles. Local images and fonts use bounded
+cache-first storage. The site uses a precached offline page only when the requested document is
+unavailable from both the network and the runtime cache.
 
-Installation uses the browser's native `beforeinstallprompt` flow when available. The site never
-opens that prompt automatically, and browsers without a custom prompt can use their menu or, on
-iOS/iPadOS Safari, **Share → Add to Home Screen**. Installing this website is separate from the
+Installation uses the browser's native `beforeinstallprompt` flow when available. The site does not
+open that prompt automatically. In browsers without a custom prompt, use the browser menu or, on
+iOS and iPadOS Safari, **Share → Add to Home Screen**. Installing the website is separate from the
 Fullscreen API and does not grant fullscreen capability.
 
 Worker updates remain user-controlled. When a new version is waiting, choose **Update now** to
-activate it and reload the current page once. On the playground, this explicit action is the only
-update path that reloads an active session. The generated worker includes a final-artifact version
-marker, so deployable website changes can be detected without precaching unversioned bundles.
+activate it and reload the current page once. On the playground, only this explicit action reloads
+an active session during an update. The generated worker includes a final-artifact version marker,
+so deployable website changes can be detected without precaching unversioned bundles.
 
 ## Development
 
@@ -392,9 +402,14 @@ npm pack --dry-run
 Normal `npm run dev` does not register the production worker. Build `npm run docs` and serve the
 generated `docs` directory from localhost under `/vue-screenfull/` for production-like PWA testing.
 
-See [`guides/MANUAL_TESTING.md`](./guides/MANUAL_TESTING.md) for the browser matrix and real-browser strategy.
-Production output remains `lib/index.cjs.js`, `lib/index.esm.js`, `lib/vue-screenfull.min.js`, `lib/index.d.ts`, `lib/typing.d.ts`, and `lib/global.d.ts`. Native Node ESM resolves through the additional conditional entry `lib/index.mjs`.
+See [`guides/MANUAL_TESTING.md`](./guides/MANUAL_TESTING.md) for the browser matrix and real-browser
+strategy. Production output remains `lib/index.cjs.js`, `lib/index.esm.js`,
+`lib/vue-screenfull.min.js`, `lib/index.d.ts`, `lib/typing.d.ts`, and `lib/global.d.ts`. Native Node
+ESM resolves through the additional conditional entry `lib/index.mjs`.
 
 ## License and Attribution
 
-Released under the MIT License. This independent project acknowledges [screenfull](https://github.com/sindresorhus/screenfull) (MIT) for its public API and cross-browser compatibility inspiration, and `vue-fullscreen` (MIT) as a Vue ecosystem reference. No endorsement is implied.
+Released under the MIT License. This independent project acknowledges
+[screenfull](https://github.com/sindresorhus/screenfull) (MIT) for its public API and cross-browser
+compatibility inspiration, and `vue-fullscreen` (MIT) as a Vue ecosystem reference. No endorsement
+is implied.
