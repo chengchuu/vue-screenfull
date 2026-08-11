@@ -22,7 +22,6 @@ pseudo-fullscreen fallback.
 - Vue template refs, component refs, elements, and safe CSS selectors.
 - Structured results and actionable errors instead of swallowed rejections.
 - Renderless component, directive, optional plugin, and framework-neutral controller.
-- Vue-free browser entry for npm, native browser modules, and classic scripts.
 
 ## Installation
 
@@ -30,82 +29,8 @@ pseudo-fullscreen fallback.
 npm install vue-screenfull
 ```
 
-The browser bundle is `lib/vue-screenfull.min.js`. It exposes `VUE_SCREENFULL` and expects Vue to be
-available as the global `Vue`. Vue is optional only at package-installation level; imports from the
-package root still require Vue 3 at runtime.
-
-### Vue-free browser entry
-
-Use `vue-screenfull/browser` when the caller does not own a Vue root. This subpath exports only
-`createScreenfullController`, `detectFullscreenApi`, and their framework-neutral types. It does not
-load Vue or Mazey at runtime.
-
-With npm:
-
-```ts
-import { createScreenfullController } from "vue-screenfull/browser";
-
-const controller = createScreenfullController({ restoreFocus: true });
-const target = document.querySelector("#player");
-const button = document.querySelector("#toggle-fullscreen");
-const toggle = () => controller.toggle(target);
-
-button?.addEventListener("click", toggle);
-
-async function dispose() {
-  button?.removeEventListener("click", toggle);
-  await controller.destroy();
-}
-
-// Call dispose() when the integration is disposed.
-```
-
-As a native browser ES module:
-
-```html
-<script type="module">
-  import { createScreenfullController } from "https://cdn.jsdelivr.net/npm/vue-screenfull/lib/browser.mjs";
-
-  const controller = createScreenfullController();
-  const target = document.querySelector("#player");
-  const button = document.querySelector("#toggle-fullscreen");
-  const toggle = () => controller.toggle(target);
-
-  button?.addEventListener("click", toggle);
-
-  async function dispose() {
-    button?.removeEventListener("click", toggle);
-    await controller.destroy();
-  }
-
-  // Call dispose() when the integration is disposed.
-</script>
-```
-
-As a classic script:
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/vue-screenfull/lib/vue-screenfull.browser.min.js"></script>
-<script>
-  const controller = VUE_SCREENFULL_BROWSER.createScreenfullController();
-  const target = document.querySelector("#player");
-  const button = document.querySelector("#toggle-fullscreen");
-  const toggle = () => controller.toggle(target);
-
-  button?.addEventListener("click", toggle);
-
-  function dispose() {
-    button?.removeEventListener("click", toggle);
-    return controller.destroy();
-  }
-
-  // Call dispose() when the integration is disposed.
-</script>
-```
-
-Call `request` or `toggle` directly from a click, keyboard, or touch handler because browsers
-normally require transient user activation. Retain the controller and call `destroy()` when the
-integration is disposed so its listeners and any active CSS fallback are cleaned up.
+`lib/vue-screenfull.min.js` exposes `VUE_SCREENFULL` and requires the global `Vue`. Although Vue is
+an optional peer dependency, package-root imports still require Vue 3 at runtime.
 
 ## Basic Usage
 
@@ -276,6 +201,87 @@ createApp(App).use(VueScreenfull).mount("#app");
 
 This registers `Screenfull` and `v-screenfull`. Use `componentName` and `directiveName` to change
 their names. Named composable imports do not require plugin installation and remain tree-shakable.
+
+## Vue-free Browser Entry
+
+Use `vue-screenfull/browser` when the caller does not own a Vue root. This subpath exports only
+`createScreenfullController`, `detectFullscreenApi`, and their framework-neutral types. It does not
+load Vue or Mazey at runtime.
+
+With npm:
+
+```ts
+import {
+  createScreenfullController,
+  type ScreenfullChangeListener,
+} from "vue-screenfull/browser";
+
+const controller = createScreenfullController({ restoreFocus: true });
+const target = document.querySelector("#player");
+const button = document.querySelector("#toggle-fullscreen");
+const toggle = () => controller.toggle(target);
+const onChange: ScreenfullChangeListener = (state) => {
+  console.log(state.isFullscreen, state.element);
+};
+
+button?.addEventListener("click", toggle);
+controller.on("change", onChange);
+
+async function dispose() {
+  button?.removeEventListener("click", toggle);
+  controller.off("change", onChange);
+  await controller.destroy();
+}
+
+// Call dispose() when the integration is disposed.
+```
+
+As a native browser ES module:
+
+```html
+<script type="module">
+  import { createScreenfullController } from "https://cdn.jsdelivr.net/npm/vue-screenfull/lib/browser.mjs";
+
+  const controller = createScreenfullController();
+  const target = document.querySelector("#player");
+  const button = document.querySelector("#toggle-fullscreen");
+  const toggle = () => controller.toggle(target);
+
+  button?.addEventListener("click", toggle);
+
+  async function dispose() {
+    button?.removeEventListener("click", toggle);
+    await controller.destroy();
+  }
+
+  // Call dispose() when the integration is disposed.
+</script>
+```
+
+As a classic script:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/vue-screenfull/lib/vue-screenfull.browser.min.js"></script>
+<script>
+  const controller = VUE_SCREENFULL_BROWSER.createScreenfullController();
+  const target = document.querySelector("#player");
+  const button = document.querySelector("#toggle-fullscreen");
+  const toggle = () => controller.toggle(target);
+
+  button?.addEventListener("click", toggle);
+
+  function dispose() {
+    button?.removeEventListener("click", toggle);
+    return controller.destroy();
+  }
+
+  // Call dispose() when the integration is disposed.
+</script>
+```
+
+Call `request` or `toggle` directly from a click, keyboard, or touch handler because browsers
+normally require transient user activation. Retain the controller and call `destroy()` when the
+integration is disposed so its listeners and any active CSS fallback are cleaned up.
 
 ## Advanced Usage
 
