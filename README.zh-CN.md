@@ -22,8 +22,8 @@
 - 检测带 WebKit、Mozilla、Microsoft 前缀的 API。
 - 支持 Vue 模板引用、组件引用、元素和安全的 CSS 选择器。
 - 返回结构化结果和可操作的错误，不会静默忽略 Promise 拒绝。
-- 提供无渲染组件、指令、可选插件和轻量级框架控制器。
-- 不依赖全屏包装器或其他运行时依赖；Vue 仍是对等依赖。
+- 提供无渲染组件、指令、可选插件和框架无关的控制器。
+- 提供适用于 npm、浏览器原生模块和经典脚本的无 Vue 浏览器入口。
 - 提供 CJS、ESM、浏览器 IIFE、源映射和类型声明。
 
 ## 安装
@@ -32,7 +32,76 @@
 npm install vue-screenfull
 ```
 
-浏览器包为 `lib/vue-screenfull.min.js`。它会暴露 `VUE_SCREENFULL`，并要求通过全局变量 `Vue` 访问 Vue。
+浏览器包为 `lib/vue-screenfull.min.js`。它会暴露 `VUE_SCREENFULL`，并要求通过全局变量 `Vue` 访问 Vue。Vue 只在软件包安装层面标记为可选。通过软件包根入口导入 API 时，运行时仍需要 Vue 3。
+
+### 无 Vue 浏览器入口
+
+如果调用方没有 Vue 根实例，请使用 `vue-screenfull/browser`。该子路径只导出 `createScreenfullController`、`detectFullscreenApi` 和框架无关的类型。运行时不会加载 Vue 或 Mazey。
+
+通过 npm 使用：
+
+```ts
+import { createScreenfullController } from "vue-screenfull/browser";
+
+const controller = createScreenfullController({ restoreFocus: true });
+const target = document.querySelector("#player");
+const button = document.querySelector("#toggle-fullscreen");
+const toggle = () => controller.toggle(target);
+
+button?.addEventListener("click", toggle);
+
+async function dispose() {
+  button?.removeEventListener("click", toggle);
+  await controller.destroy();
+}
+
+// 集成销毁时调用 dispose()。
+```
+
+通过浏览器原生 ES 模块使用：
+
+```html
+<script type="module">
+  import { createScreenfullController } from "https://cdn.jsdelivr.net/npm/vue-screenfull/lib/browser.mjs";
+
+  const controller = createScreenfullController();
+  const target = document.querySelector("#player");
+  const button = document.querySelector("#toggle-fullscreen");
+  const toggle = () => controller.toggle(target);
+
+  button?.addEventListener("click", toggle);
+
+  async function dispose() {
+    button?.removeEventListener("click", toggle);
+    await controller.destroy();
+  }
+
+  // 集成销毁时调用 dispose()。
+</script>
+```
+
+通过经典脚本使用：
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/vue-screenfull/lib/vue-screenfull.browser.min.js"></script>
+<script>
+  const controller = VUE_SCREENFULL_BROWSER.createScreenfullController();
+  const target = document.querySelector("#player");
+  const button = document.querySelector("#toggle-fullscreen");
+  const toggle = () => controller.toggle(target);
+
+  button?.addEventListener("click", toggle);
+
+  function dispose() {
+    button?.removeEventListener("click", toggle);
+    return controller.destroy();
+  }
+
+  // 集成销毁时调用 dispose()。
+</script>
+```
+
+请在点击、键盘或触摸事件处理程序中直接调用 `request` 或 `toggle`。浏览器通常要求短暂的用户激活状态。请保留控制器，并在集成销毁时调用 `destroy()`。该方法会清理监听器和正在运行的 CSS 回退方案。
 
 ## 浏览器支持
 
@@ -196,10 +265,10 @@ createApp(App).use(VueScreenfull).mount("#app");
 
 ## 高级用法
 
-轻量级框架控制器适用于迁移和非组件集成:
+框架无关的控制器适用于迁移和非组件集成：
 
 ```ts
-import { createScreenfullController } from "vue-screenfull";
+import { createScreenfullController } from "vue-screenfull/browser";
 
 const controller = createScreenfullController({ restoreFocus: true });
 const onChange = (state) => console.log(state.isFullscreen, state.element);
@@ -313,6 +382,8 @@ if (isEnabled.value) {
 
 操作会解析为 `{ ok, mode, element, error }`。`mode` 为 `native`、`fallback` 或 `none`。生成的 TypeDoc 发布于 [API 文档网站](https://chengchuu.github.io/vue-screenfull/api/)。
 
+`vue-screenfull/browser` 子路径只导出 `createScreenfullController`、`detectFullscreenApi` 和框架无关的控制器类型。
+
 ## 在线演练场
 
 已部署的版本位于 [vue-screenfull 在线演练场](https://chengchuu.github.io/vue-screenfull/playground/)。其中包含页面、元素、图片样式和视频目标。它还提供显式退出、诊断、无效目标反馈和事件历史记录。其他内容包括无障碍、iframe、移动端和迁移说明。使用以下命令在本地运行:
@@ -351,16 +422,25 @@ npm pack --dry-run
 
 常规的 `npm run dev` 不会注册生产环境 Worker。若要在类似生产环境中测试 PWA，请运行 `npm run docs`。然后在 localhost 的 `/vue-screenfull/` 路径下提供生成的 `docs` 目录。
 
-有关浏览器矩阵和真实浏览器测试策略，请参阅 [`guides/MANUAL_TESTING.md`](./guides/MANUAL_TESTING.md)。生产输出仍包含以下文件:
+有关浏览器矩阵和真实浏览器测试策略，请参阅 [`guides/MANUAL_TESTING.md`](./guides/MANUAL_TESTING.md)。根入口会生成以下文件：
 
 - `lib/index.cjs.js`
 - `lib/index.esm.js`
+- `lib/index.mjs`
 - `lib/vue-screenfull.min.js`
 - `lib/index.d.ts`
 - `lib/typing.d.ts`
 - `lib/global.d.ts`
 
-原生 Node ESM 通过额外的条件入口 `lib/index.mjs` 解析。
+框架无关的入口会生成以下文件：
+
+- `lib/browser.cjs.js`
+- `lib/browser.esm.js`
+- `lib/browser.mjs`
+- `lib/browser.d.ts`
+- `lib/vue-screenfull.browser.min.js`
+
+JavaScript 软件包会包含源映射。
 
 ## 许可证与致谢
 

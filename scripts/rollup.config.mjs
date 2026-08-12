@@ -19,6 +19,8 @@ const pkgVersion =
   process.env.SCRIPTS_NPM_PACKAGE_VERSION || process.env.VERSION || "unknown";
 const debugMode = process.env.SCRIPTS_NPM_PACKAGE_DEBUG;
 const inputResolve = _resolve("../src/index.ts");
+const browserInputResolve = _resolve("../src/browser.ts");
+const browserIifeName = `${iifeName}_BROWSER`;
 const banner =
   "/*!\n" +
   ` * ${pkgName} v${pkgVersion}\n` +
@@ -85,6 +87,16 @@ const indexDtsConf = {
   ],
   plugins: [dts()],
   external: moduleExternal,
+};
+const browserDtsConf = {
+  input: browserInputResolve,
+  output: [
+    {
+      file: _resolve("../lib/browser.d.ts"),
+      format: "es",
+    },
+  ],
+  plugins: [dts()],
 };
 const globalDtsConf = {
   input: _resolve("../types/global.d.ts"),
@@ -162,7 +174,51 @@ export default [
     plugins: [resolveMazey(), ...plugins],
     external: browserExternal,
   },
+  {
+    input: browserInputResolve,
+    output: [
+      {
+        file: _resolve("../lib/browser.cjs.js"),
+        format: "cjs",
+        exports: "named",
+        banner,
+        sourcemap: true,
+        plugins: iifePlugins,
+      },
+      {
+        file: _resolve("../lib/browser.esm.js"),
+        format: "esm",
+        banner,
+        sourcemap: true,
+        plugins: iifePlugins,
+      },
+      {
+        file: _resolve("../lib/browser.mjs"),
+        format: "esm",
+        banner,
+        sourcemap: true,
+        plugins: iifePlugins,
+      },
+    ],
+    plugins,
+  },
+  {
+    input: browserInputResolve,
+    output: [
+      {
+        file: _resolve(`../lib/${pkgName}.browser.min.js`),
+        format: "iife",
+        name: browserIifeName,
+        exports: "named",
+        banner,
+        sourcemap: true,
+        plugins: iifePlugins,
+      },
+    ],
+    plugins,
+  },
   indexDtsConf,
+  browserDtsConf,
   typingDtsConf,
   globalDtsConf,
 ];

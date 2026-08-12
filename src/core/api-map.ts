@@ -1,4 +1,4 @@
-import type { RawFullscreenApi } from "../typing";
+import type { RawFullscreenApi } from "./typing";
 
 const candidates: readonly RawFullscreenApi[] = [
   {

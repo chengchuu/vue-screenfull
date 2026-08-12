@@ -4,7 +4,8 @@ Guidance for automated coding agents working in `vue-screenfull`.
 
 ## Scope And Goal
 
-This directory is the primary npm package. Improve maintainability, package quality, developer experience.
+This directory is the primary npm package. Improve maintainability, package quality, and developer
+experience.
 
 Keep the package generic, browser-friendly, and easy to rename. Preserve the package identity
 `vue-screenfull` unless the user explicitly requests a rename.
@@ -12,7 +13,9 @@ Keep the package generic, browser-friendly, and easy to rename. Preserve the pac
 ## Project Shape
 
 - `src/index.ts`: package entrypoint and supported root exports.
-- `src/core`: framework-light Fullscreen API detection, controller, target, error, and fallback logic.
+- `src/browser.ts`: framework-neutral browser subpath entrypoint.
+- `src/core`: Fullscreen API detection, controller, target, types, error, and fallback logic.
+- `src/core/typing.ts`: framework-neutral controller types shared by both public entries.
 - `src/composables`: reactive Vue APIs and scope cleanup.
 - `src/components`, `src/directives`, and `src/plugin`: optional Vue integration layers.
 - `src/typing.ts`: public TypeScript interfaces and type aliases.
@@ -20,15 +23,22 @@ Keep the package generic, browser-friendly, and easy to rename. Preserve the pac
 - `test`: Node and jsdom Jest tests for public behavior.
 - `type-tests`: compile-time checks for public root imports and narrowing.
 - `examples`: accessible Webpack playground and diagnostics UI.
+- `README.md` and `README.zh-CN.md`: maintained English and Simplified Chinese user documentation.
 - `guides/MANUAL_TESTING.md`: repeatable real-browser and operating-system matrix.
+- `guides/BUG_AUDIT.md`: point-in-time reliability audit; verify its claims against current code
+  before treating them as current behavior.
+- `guides/MAZEY_CANDIDATES.md`: evaluated helper-extraction candidates and boundaries for Mazey reuse.
 - `scripts/rollup.config.mjs`: production JavaScript and declaration builds.
 - `scripts/webpack.config.dev.js`: development/demo build and dev server.
+- `site/theme.ts` and `site/theme-entry.ts`: project-owned theme/navigation behavior and its browser
+  entrypoint.
 - `site/pwa.ts` and `site/pwa/`: browser-native install handling and Workbox-window lifecycle UX.
 - `site/service-worker.ts`: Workbox v7 service worker source for scoped routing and caching.
 - `scripts/build-pages.js`: combines the generated site and API docs, emits manifest assets, and
   runs Workbox `injectManifest` against the final Pages artifact.
-- `scripts/validate-pwa.js`: validates the generated manifest, icons, page metadata, and worker.
+- `scripts/validate-seo.js` and `scripts/validate-pwa.js`: validate the assembled Pages artifact.
 - `scripts/change-package-name.js`: automation helper that changes only the package name.
+- `pnpm-lock.yaml`: tracked dependency-resolution lockfile.
 - `lib`: generated publish output; do not edit it by hand.
 - `dist-dev`, `docs`, and `coverage`: generated development, documentation, and test output.
 
@@ -44,35 +54,59 @@ The published package currently provides:
 - ES modules: `lib/index.esm.js`
 - Native Node ES modules: `lib/index.mjs`
 - Browser IIFE: `lib/vue-screenfull.min.js`
+- Framework-neutral CommonJS: `lib/browser.cjs.js`
+- Framework-neutral bundler ESM: `lib/browser.esm.js`
+- Framework-neutral native ESM: `lib/browser.mjs`
+- Framework-neutral browser IIFE: `lib/vue-screenfull.browser.min.js`
+- Framework-neutral declarations: `lib/browser.d.ts`
 - Root declarations: `lib/index.d.ts`
 - Shared declarations: `lib/typing.d.ts`
 - Global augmentations: `lib/global.d.ts`
 
 Preserve these formats unless the user requests a packaging change. Keep `package.json` fields,
-Rollup outputs, README examples, and generated files aligned.
+Rollup outputs, README examples, declarations, and generated files aligned.
 
 Keep the conditional `exports` map aligned with the legacy `main`, `module`, and `types` fields.
 Native Node ESM must resolve to `lib/index.mjs`; pointing it at `index.esm.js` is invalid while the
 package remains CommonJS by default. Preserve the documented legacy bundle subpath exports.
 
-Mazey is the package's shared runtime utility dependency; verify its installed public contracts
-before reuse. Vue is a peer dependency and a development dependency, and must remain external in
-Rollup. Put build, test, lint, and documentation tools in `devDependencies`. Do not add a fullscreen
-wrapper such as `screenfull` as a dependency; compatibility logic belongs in this package.
+`mazey` is the package's runtime utility dependency. `src/core/target.ts` delegates generic target
+resolution to `resolveElementTarget`, while `site/theme.ts` uses Mazey's theme preference and media
+query helpers. Verify installed Mazey exports, declarations, implementation, and tests before adding
+another reuse. Vue is an optional peer dependency and a development dependency. Rollup keeps both Vue and
+Mazey external for module outputs, but the browser IIFE bundles Mazey and expects only the global
+`Vue`. The `vue-screenfull/browser` module and `VUE_SCREENFULL_BROWSER` IIFE contain no Vue or Mazey
+runtime import. Optional peer metadata supports Vue-free subpath consumers; package-root APIs still
+require Vue at runtime. Do not add a fullscreen wrapper such as `screenfull`; compatibility logic
+belongs here.
 
 When changing a public function, value, or type, check all of these together:
 
 - exports and implementation in `src/index.ts`;
-- declarations in `src/typing.ts` and `types/global.d.ts`;
+- declarations in `src/core/typing.ts`, `src/typing.ts`, and `types/global.d.ts`;
 - tests under `test`;
 - compile-time coverage under `type-tests`;
-- usage in `examples` and `README.md`;
+- usage in `examples`, `README.md`, and `README.zh-CN.md`;
 - generated declarations and bundles from `npm run build`.
 
 Do not add a runtime `packageInfo` export or hard-coded package version to `src/index.ts`. Package
 metadata belongs in `package.json`; the existing npm scripts pass `$npm_package_version` to Rollup
 for generated bundle banners. Consumers that need metadata can use the explicitly exported
 `vue-screenfull/package.json` subpath.
+
+## Dependencies And Package Managers
+
+CI uses Node.js 22 and runs installation and scripts through npm. The repository also tracks
+`pnpm-lock.yaml` (lockfile format 9) and intentionally ignores `package-lock.json`.
+
+- Run repository scripts with their documented `npm run ...` commands.
+- When dependency metadata changes, update `package.json` and `pnpm-lock.yaml` together with pnpm;
+  do not commit a generated `package-lock.json`.
+- Keep `mazey` in `dependencies`, Vue in both `peerDependencies` and `devDependencies`, and build,
+  test, lint, documentation, and Workbox packages in `devDependencies`.
+- Verify the npm-based CI installation path after dependency or lockfile changes when practical.
+- Use `guides/MAZEY_CANDIDATES.md` as scope evidence, not as authorization to change the separate
+  Mazey repository or to move project-specific fullscreen, theme DOM, or PWA policy upstream.
 
 ## Runtime Architecture And Invariants
 
@@ -99,15 +133,18 @@ fallback behavior.
 - CSS fallback is pseudo-fullscreen, never native fullscreen. It must restore every modified inline
   style, body overflow, scroll position, focus where practical, classes, and listeners on exit or
   disposal.
+- CSS fallback locks background body scrolling only for element overlays. A whole-page
+  `document.documentElement` or `document.body` fallback must remain scrollable.
 - Native and CSS fallback modes must not remain active together. When a native request for a new
   target fails while another target is already natively fullscreen, exit the existing native session
   before entering fallback; if that exit fails, return the structured exit failure instead.
 - Destroying a controller during a pending fallback must clean up if the fallback finishes later and
   must not notify disposed Vue scopes.
 
-Target resolution accepts Elements, Vue refs, component refs, selectors, and nullish defaults.
-Invalid or unmatched explicit targets must produce `INVALID_TARGET`; detached targets must produce
-`TARGET_NOT_CONNECTED`.
+Target resolution accepts Elements, Vue refs, component refs, selectors, and nullish defaults. Keep
+the Vue unwrap adapter and fullscreen-specific default in `resolveScreenfullTarget`, and delegate
+generic DOM target resolution to Mazey's `resolveElementTarget`. Invalid or unmatched explicit
+targets must produce `INVALID_TARGET`; detached targets must produce `TARGET_NOT_CONNECTED`.
 
 ## TypeScript
 
@@ -147,6 +184,11 @@ with strict checking in a clean consumer, not only the repository's `skipLibChec
 Rollup owns production output. Preserve CJS, ESM, IIFE, source maps, declaration generation, the
 license banner, and minification controlled by `SCRIPTS_NPM_PACKAGE_DEBUG`. Babel helpers are
 bundled, and generated JavaScript must not acquire undeclared runtime helper imports.
+
+Keep `vue` and `mazey` external in CJS, ESM, and declaration outputs. The IIFE-specific Mazey
+resolver intentionally bundles Mazey from its declared module entry while leaving Vue external as
+the `Vue` global. Recheck both module consumers and the browser bundle when dependency resolution or
+Rollup configuration changes.
 
 Preserve `/*#__PURE__*/` annotations on top-level Vue/component helpers and other safely pure
 initializers. Terser is configured with `preserve_annotations` so consumers can tree-shake unused
@@ -199,11 +241,12 @@ Add or update Jest tests when public behavior changes. Keep tests deterministic 
 network services. For packaging changes, inspect the generated `lib` files and the `npm pack`
 manifest, not only whether Rollup exits successfully.
 
-Use `@jest-environment node` for import/SSR checks and `@jest-environment jsdom` for DOM, Vue,
-directive, component, and compatibility behavior. Native user-gesture fullscreen is not reliable in
-headless CI; test browser-name mapping and transition logic with deterministic fakes, then document
-real-browser coverage in `guides/MANUAL_TESTING.md`. Keep `type-tests/public.ts` checking result narrowing
-and root-only consumer imports.
+Use `@jest-environment node` for import/SSR, SEO transformation, service-worker source, manifest,
+and artifact-helper checks. Use `@jest-environment jsdom` for DOM, Vue, directive, component, PWA
+lifecycle, theme, navigation, and compatibility behavior. Native user-gesture fullscreen is not
+reliable in headless CI; test browser-name mapping and transition logic with deterministic fakes,
+then document real-browser coverage in `guides/MANUAL_TESTING.md`. Keep `type-tests/public.ts`
+checking result narrowing and root-only consumer imports.
 
 Do not run `scripts/change-package-name.js` casually during verification because it mutates
 `package.json`. When explicitly testing it, restore the normal package identity or intentionally
@@ -211,13 +254,17 @@ keep the requested result.
 
 ## Documentation
 
-Update `README.md` when changing:
+Keep `README.md` and `README.zh-CN.md` behaviorally synchronized when changing:
 
 - public API names, types, or examples;
 - installation or development commands;
 - package output paths or supported module formats;
 - Node.js or TypeScript requirements;
 - release or documentation workflows visible to maintainers.
+
+Do not treat validation counts, dependency statements, generated sizes, or open findings recorded in
+`guides/BUG_AUDIT.md` as live project state. It is historical audit evidence unless a task explicitly
+updates and revalidates it.
 
 TypeDoc configuration lives in `tsconfig.json`. `npm run docs` generates API documentation at
 `./docs/api`, builds the Webpack playground, and runs `scripts/build-pages.js` to create stable Pages
@@ -244,12 +291,13 @@ produce a waiting worker without precaching unversioned bundles. Normal `npm run
 production worker registration disabled.
 
 The public pages share `site/theme.css` and the Webpack entry `site/theme-entry.ts`, which bundles
-`site/theme.ts` to `assets/theme.js`. Theme preference values are `system`, `light`, and `dark`,
-stored under `vue-screenfull-theme`; the TypeDoc bridge mirrors the resolved choice into its
-generated pages. Keep the synchronous head-loaded theme bundle and its metadata synchronized across
-the root template, playground template, and API transformation so it can apply the initial theme
-before CSS paints. Mobile navigation must remain progressively enhanced, keyboard operable, and
-usable without hiding links when JavaScript fails.
+`site/theme.ts` to the generated `assets/theme.js`. Theme preference values are `system`, `light`,
+and `dark`, stored under `vue-screenfull-theme`; Mazey resolves and persists the preference while
+project code owns DOM attributes, controls, theme-color metadata, TypeDoc synchronization, and
+navigation behavior. Keep the synchronous head-loaded theme bundle and its metadata synchronized
+across the root template, playground template, and API transformation so it can apply the initial
+theme before CSS paints. Mobile navigation must remain progressively enhanced, keyboard operable,
+and usable without hiding links when JavaScript fails.
 
 README changes to browser support must use runtime feature-detection language and distinguish tested
 platforms from documented targets. Do not claim that CSS fallback hides browser/OS UI or that
@@ -283,10 +331,14 @@ tag.
 - Do not expose registry tokens in logs or committed configuration.
 - Do not publish, push tags, or trigger releases unless the user explicitly requests it.
 
-The Pages workflow is `.github/workflows/pages.yml`. It deploys on pushes to `main` and manual
-`workflow_dispatch` runs. It uses Node.js 22, installs dependencies with `npm install`, builds
-TypeDoc with `npm run docs`, uploads `docs`, and deploys through the `github-pages` environment.
+The Pages workflow is `.github/workflows/pages.yml`. It deploys on pushes to `main` and
+`release/v*`, plus manual `workflow_dispatch` runs. It uses Node.js 22, installs dependencies with
+`npm install`, builds the complete site with `npm run docs`, uploads `docs`, and deploys through the
+`github-pages` environment.
 
+- Preserve the checked-in action majors: `actions/checkout@v7`, `actions/setup-node@v6`,
+  `actions/configure-pages@v6`, `actions/upload-pages-artifact@v5`, and
+  `actions/deploy-pages@v5`. Verify official stable releases before changing them.
 - Keep its explicit permissions: `contents: read`, `pages: write`, and `id-token: write`.
 - Keep the deployment step id as `deployment`; the environment URL reads
   `steps.deployment.outputs.page_url`.
