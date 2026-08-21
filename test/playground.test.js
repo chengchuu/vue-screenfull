@@ -52,33 +52,38 @@ const diagnosticValue = (label) => {
   return term.nextElementSibling.textContent;
 };
 
-test("video fullscreen targets a wrapper containing its accessible exit", async () => {
+test("video fullscreen targets the complete card containing both controls", async () => {
   document.body.innerHTML = '<div id="app"></div>';
   const { __mockScreenfull: screenfull } = require("../src");
   require("../examples/index");
 
-  const wrapper = document.querySelector(".video-target");
-  const video = wrapper.querySelector("video");
+  const card = document.querySelector(".video-card");
+  const video = card.querySelector("video");
   const view = buttonByText("View video fullscreen");
   const exit = buttonByText("Exit video fullscreen");
 
   expect(video).not.toBeNull();
-  expect(wrapper.contains(exit)).toBe(true);
-  expect(wrapper.contains(view)).toBe(false);
-  expect(exit.classList).toContain("video-target__exit");
+  expect(card.tagName).toBe("ARTICLE");
+  expect(card.querySelector(".badge").textContent).toBe("VIDEO");
+  expect(card.querySelector("h2").textContent).toBe("Video target");
+  expect(card.querySelector("p")).not.toBeNull();
+  expect(card.contains(view)).toBe(true);
+  expect(card.contains(exit)).toBe(true);
+  expect(view.classList).toContain("video-card__enter");
+  expect(exit.classList).toContain("video-card__exit");
 
   view.click();
   await nextTick();
   await nextTick();
 
   expect(screenfull.request).toHaveBeenCalledWith(
-    expect.objectContaining({ value: wrapper }),
+    expect.objectContaining({ value: card }),
   );
   expect(diagnosticValue("Last result mode")).toBe("fallback");
   expect(diagnosticValue("Status")).toBe("fallback");
   expect(diagnosticValue("Is fallback")).toBe("true");
   expect(diagnosticValue("Is fullscreen")).toBe("true");
-  expect(diagnosticValue("Controller fullscreen element")).toBe("DIV");
+  expect(diagnosticValue("Controller fullscreen element")).toBe("ARTICLE");
   expect(diagnosticValue("Document fullscreen element")).toBe("none");
 
   exit.click();
@@ -86,15 +91,36 @@ test("video fullscreen targets a wrapper containing its accessible exit", async 
   expect(screenfull.exit).toHaveBeenCalledTimes(1);
 });
 
-test("video target styles preserve a touch-accessible exit in both modes", () => {
+test("video card styles switch controls and preserve its fullscreen layout", () => {
   const { readFileSync } = require("node:fs");
   const html = readFileSync("examples/index.html", "utf8");
   const source = readFileSync("examples/index.ts", "utf8");
 
-  expect(html).toMatch(/\.video-target__exit\s*\{[^}]*min-height:\s*44px/s);
-  expect(html).toMatch(/\.video-target\.vue-screenfull-fallback\s*\{/);
-  expect(html).toMatch(/\.video-target:fullscreen\s*\{/);
-  expect(html).toMatch(/\.video-target:-webkit-full-screen\s*\{/);
+  expect(html).toMatch(
+    /\.video-card__exit\s*\{[^}]*display:\s*none;[^}]*min-height:\s*44px/s,
+  );
+  for (const state of [
+    ".video-card.vue-screenfull-fallback",
+    ".video-card:fullscreen",
+    ".video-card:-webkit-full-screen",
+  ]) {
+    expect(html).toContain(`${state} {`);
+    expect(html).toContain(`${state} .video-card__enter {`);
+    expect(html).toContain(`${state} .video-card__exit {`);
+  }
+  expect(
+    html.match(/grid-template-rows:\s*auto minmax\(0, 1fr\) auto/g),
+  ).toHaveLength(3);
+  expect(
+    html.match(
+      /\.video-card[^\n]*\.video-card__enter\s*\{\s*display:\s*none;/g,
+    ),
+  ).toHaveLength(3);
+  expect(
+    html.match(
+      /\.video-card[^\n]*\.video-card__exit\s*\{\s*display:\s*inline-flex;/g,
+    ),
+  ).toHaveLength(3);
   expect(html.match(/object-fit:\s*contain/g)).toHaveLength(3);
   expect(html).toContain("env(safe-area-inset-bottom)");
   expect(source).not.toMatch(/userAgent|userAgentData/);

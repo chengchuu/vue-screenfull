@@ -114,27 +114,34 @@ createApp({
             button("View image fullscreen", () => screenfull.request(image)),
             button("Exit image fullscreen", screenfull.exit),
           ]),
-          h("article", { class: "card" }, [
-            h("div", { ref: videoTarget, class: "video-target" }, [
+          h("article", { ref: videoTarget, class: "card video-card" }, [
+            h("header", { class: "video-card__header" }, [
+              h("span", { class: "badge" }, "VIDEO"),
+              h("h2", "Video target"),
+              h(
+                "p",
+                "This example fullscreens the complete card so its context and exit control remain available. Direct HTMLVideoElement targets remain supported by the library API.",
+              ),
+            ]),
+            h("div", { class: "video-card__media" }, [
               h("video", {
                 controls: true,
                 muted: true,
                 playsinline: true,
               }),
+            ]),
+            h("div", { class: "video-card__actions" }, [
+              button(
+                "View video fullscreen",
+                () => screenfull.request(videoTarget),
+                "video-card__enter",
+              ),
               button(
                 "Exit video fullscreen",
                 screenfull.exit,
-                "video-target__exit",
+                "video-card__exit",
               ),
             ]),
-            h("h2", "Video target"),
-            h(
-              "p",
-              "This example targets a video wrapper so its exit control remains reachable. Direct HTMLVideoElement targets remain supported by the library API.",
-            ),
-            button("View video fullscreen", () =>
-              screenfull.request(videoTarget),
-            ),
           ]),
         ]),
         h("section", { class: "panel" }, [

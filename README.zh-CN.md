@@ -8,31 +8,28 @@
 [license-image]: https://img.shields.io/npm/l/vue-screenfull.svg
 [license-url]: https://github.com/chengchuu/vue-screenfull/blob/main/LICENSE
 
-专为 Vue 3 设计的响应式、强类型且支持 SSR 的全屏工具。
-还提供可选的 CSS 伪全屏回退方案。
+`vue-screenfull` 为 Vue 3 提供响应式、强类型的全屏控制。在服务端渲染
+(Server-Side Rendering，SSR) 期间也可以安全导入该软件包。原生任意元素全屏不可用时，可以启用
+CSS 伪全屏回退方案。
 
 - [项目网站](https://chengchuu.github.io/vue-screenfull/)
 - [在线演练场](https://chengchuu.github.io/vue-screenfull/playground/)
 - [API 文档](https://chengchuu.github.io/vue-screenfull/api/)
 
-## 功能特性
-
-- 响应式 Composition API 状态，支持自动清理作用域。
-- 检测标准 API。
-- 检测带 WebKit、Mozilla、Microsoft 前缀的 API。
-- 支持 Vue 模板引用、组件引用、元素和安全的 CSS 选择器。
-- 返回结构化结果和可操作的错误，不会静默忽略 Promise 拒绝。
-- 提供无渲染组件、指令、可选插件和框架无关的控制器。
-- 提供适用于 npm、浏览器原生模块和经典脚本的无 Vue 浏览器入口。
-- 提供 CJS、ESM、浏览器 IIFE、源映射和类型声明。
-
 ## 安装
+
+在 Vue 3.3 或更高版本的项目中安装软件包：
 
 ```bash
 npm install vue-screenfull
 ```
 
-浏览器包为 `lib/vue-screenfull.min.js`。它会暴露 `VUE_SCREENFULL`，并要求通过全局变量 `Vue` 访问 Vue。Vue 只在软件包安装层面标记为可选。通过软件包根入口导入 API 时，运行时仍需要 Vue 3。
+软件包根入口 `vue-screenfull` 提供 Vue 组合式函数、组件、指令和插件。该入口在运行时需要
+Vue 3。Vue 被标记为可选的对等依赖，因此只使用框架无关入口 `vue-screenfull/browser` 的项目
+无需安装 Vue。
+
+默认浏览器 IIFE 位于 `lib/vue-screenfull.min.js`。它会暴露 `VUE_SCREENFULL`，并要求通过全局
+变量 `Vue` 访问 Vue。
 
 ### 无 Vue 浏览器入口
 
@@ -113,10 +110,10 @@ async function dispose() {
 
 ```vue
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { ref } from "vue";
 import { useScreenfull } from "vue-screenfull";
 
-const target = useTemplateRef<HTMLElement>("target");
+const target = ref<HTMLElement | null>(null);
 const { isEnabled, isFullscreen, error, toggle } = useScreenfull();
 </script>
 
@@ -137,9 +134,10 @@ const { isEnabled, isFullscreen, error, toggle } = useScreenfull();
 
 ```vue
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { ref } from "vue";
 import { useScreenfullTarget } from "vue-screenfull";
-const panel = useTemplateRef<HTMLElement>("panel");
+
+const panel = ref<HTMLElement | null>(null);
 const { request, isFullscreen } = useScreenfullTarget(panel);
 </script>
 <template>
@@ -159,7 +157,9 @@ const result = await toggle(target, { navigationUI: "hide" });
 if (!result.ok) console.warn(result.error.code, result.error.suggestion);
 ```
 
-对于图片内容，请传入图片的模板引用。对于视频，请传入 `HTMLVideoElement` 引用。部分移动浏览器提供仅限视频的全屏功能，与任意元素全屏相互独立。
+对于图片内容，请传入图片的模板引用。`HTMLVideoElement` 也是有效目标。如果视频演示需要自定义
+控件，请将视频及其控件放入同一个容器，并将该容器设为目标。这样可以确保原生或回退全屏模式下
+仍能使用这些控件。部分移动浏览器提供由浏览器管理的视频全屏功能，该功能与任意元素全屏相互独立。
 
 ## 退出全屏
 
@@ -167,7 +167,7 @@ if (!result.ok) console.warn(result.error.code, result.error.suggestion);
 <button type="button" @click="exit">Exit fullscreen</button>
 ```
 
-请始终提供可见的退出按钮，启用回退方案时尤其如此。Escape 键通常可以退出，但无法可靠地覆盖浏览器的 Escape 键行为。通过浏览器界面发起的退出操作会由原生变更事件反映。
+请在全屏目标内保留可见的退出按钮，启用回退方案时尤其如此。Escape 键通常可以退出，但无法可靠地覆盖浏览器的 Escape 键行为。通过浏览器界面发起的退出操作会由原生变更事件反映。
 
 ## 检查支持情况
 
@@ -224,14 +224,17 @@ CSS 回退方案会将 `HTMLElement` 固定到可视视口。它会保留自身�
   v-slot="screenfull"
   @error="report"
 >
-  <button type="button" @click="screenfull.toggle()">
-    {{ screenfull.isFullscreen ? "Exit" : "Open article" }}
-  </button>
-  <button v-if="screenfull.isFullscreen" type="button" @click="screenfull.exit">Exit</button>
+  <article id="article">
+    <button type="button" @click="screenfull.toggle()">
+      {{ screenfull.isFullscreen.value ? "Exit" : "Open article" }}
+    </button>
+  </article>
 </Screenfull>
 ```
 
-无渲染组件会触发 `change`、`enter`、`exit`、`error` 和 `fallback` 事件。其默认插槽接收组合式函数的所有引用和操作。组件不会施加任何视觉样式。
+无渲染组件会触发 `change`、`enter`、`exit`、`error` 和 `fallback` 事件。其默认插槽接收组合式
+函数的所有引用和操作。组件不会施加任何视觉样式。`screenfull` 是作用域插槽对象，因此需要使用
+`.value` 访问其中嵌套的 `ref`。
 
 ## 指令用法
 
@@ -403,8 +406,6 @@ npm run dev
 Worker 更新仍由用户控制。有新版本等待更新时，选择 **立即更新** 即可激活版本，并重新加载当前页面一次。在演练场中，此显式操作是唯一会重新加载活动会话的更新方式。生成的 Worker 包含最终产物版本标记。它无需预缓存未进行版本控制的软件包，也能检测到可部署的网站变更。
 
 ## 开发
-
-CI 使用 Node.js 22。
 
 ```bash
 npm install
