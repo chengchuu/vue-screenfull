@@ -1,4 +1,4 @@
-import type { ScreenfullError, ScreenfullErrorCode } from "../typing";
+import type { ScreenfullError, ScreenfullErrorCode } from "./typing";
 
 const suggestions: Partial<Record<ScreenfullErrorCode, string>> = {
   NOT_SUPPORTED:

@@ -1,3 +1,4 @@
+import { resolveElementTarget } from "mazey";
 import { isRef } from "vue";
 import type { ScreenfullTarget } from "../typing";
 
@@ -6,19 +7,9 @@ export function resolveScreenfullTarget(
   doc?: Document,
 ): Element | null {
   if (!doc) return null;
-  if (target === undefined) return doc.documentElement;
-  let value: unknown = isRef(target) ? target.value : target;
-  if (value == null) return null;
-  if (typeof value === "string") {
-    try {
-      return doc.querySelector(value);
-    } catch {
-      return null;
-    }
-  }
-  if (typeof value === "object" && "$el" in value)
-    value = (value as { $el?: unknown }).$el;
-  return value && typeof value === "object" && (value as Node).nodeType === 1
-    ? (value as Element)
-    : null;
+  return resolveElementTarget(target, {
+    root: doc,
+    defaultElement: doc.documentElement,
+    unwrap: (value) => (isRef(value) ? value.value : value),
+  });
 }

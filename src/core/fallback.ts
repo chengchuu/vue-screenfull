@@ -2,7 +2,7 @@ import type {
   ScreenfullFallbackContext,
   ScreenfullFallbackHandler,
   ScreenfullOptions,
-} from "../typing";
+} from "./typing";
 
 interface PropertySnapshot {
   value: string;
@@ -38,6 +38,7 @@ export class CssFallback implements ScreenfullFallbackHandler {
   private className = "";
   private addedClass = false;
   private lockedScroll = false;
+  private bodyScrollLocked = false;
 
   enter({ element, document: doc, options }: ScreenfullFallbackContext): void {
     const HTMLElementConstructor = doc.defaultView?.HTMLElement;
@@ -89,7 +90,13 @@ export class CssFallback implements ScreenfullFallbackHandler {
       this.addedClass = !this.element.classList.contains(this.className);
       if (this.addedClass) this.element.classList.add(this.className);
       this.lockedScroll = options.lockScroll !== false;
-      if (this.lockedScroll && doc.body)
+      this.bodyScrollLocked = Boolean(
+        this.lockedScroll &&
+        doc.body &&
+        this.element !== doc.documentElement &&
+        this.element !== doc.body,
+      );
+      if (this.bodyScrollLocked && doc.body)
         doc.body.style.setProperty("overflow", "hidden", "important");
     } catch (cause) {
       try {
@@ -116,7 +123,7 @@ export class CssFallback implements ScreenfullFallbackHandler {
         else this.element.style.removeProperty(property);
       }
       if (this.addedClass) this.element.classList.remove(this.className);
-      if (this.lockedScroll && doc.body) {
+      if (this.bodyScrollLocked && doc.body) {
         if (this.bodyOverflow.value)
           doc.body.style.setProperty(
             "overflow",
@@ -124,14 +131,16 @@ export class CssFallback implements ScreenfullFallbackHandler {
             this.bodyOverflow.priority,
           );
         else doc.body.style.removeProperty("overflow");
-        doc.defaultView?.scrollTo?.(this.scrollX, this.scrollY);
       }
+      if (this.lockedScroll)
+        doc.defaultView?.scrollTo?.(this.scrollX, this.scrollY);
     } finally {
       if (activeCssFallbacks.get(doc) === this) activeCssFallbacks.delete(doc);
       this.element = null;
       this.styles = null;
       this.addedClass = false;
       this.lockedScroll = false;
+      this.bodyScrollLocked = false;
     }
   }
 }

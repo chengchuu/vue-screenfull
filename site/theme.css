@@ -25,7 +25,7 @@
     sans-serif;
 }
 
-:root[data-theme="dark"] {
+:root[data-bs-theme="dark"] {
   color-scheme: dark;
   --color-background: #0d1220;
   --color-surface: #151c2d;
@@ -44,7 +44,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) {
     color-scheme: dark;
     --color-background: #0d1220;
     --color-surface: #151c2d;
@@ -169,24 +169,37 @@ select {
   margin-left: auto !important;
 }
 
-.theme-control {
+.theme-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   flex: none;
-  gap: 0.45rem;
+  box-sizing: border-box;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
   color: var(--color-text-muted);
-  font-size: 0.88rem;
-  font-weight: 650;
+  background: transparent;
+  line-height: 1;
+  cursor: pointer;
 }
 
-.theme-control select {
-  max-width: 5rem;
-  min-height: 1.75rem;
-  padding: 0.2rem 0.3rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.55rem;
+.theme-toggle:hover {
   color: var(--color-text);
-  background: transparent;
+  background: var(--color-surface-muted);
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.theme-toggle [hidden] {
+  display: none;
 }
 
 .nav-toggle {
@@ -215,7 +228,7 @@ select {
   text-decoration: none;
 }
 
-:root[data-theme="dark"] .button-link {
+:root[data-bs-theme="dark"] .button-link {
   color: #101528;
   background: var(--color-primary);
 }
@@ -225,7 +238,7 @@ select {
   background: var(--color-primary-hover);
 }
 
-:root[data-theme="dark"] .button-link:hover {
+:root[data-bs-theme="dark"] .button-link:hover {
   color: #101528;
 }
 
@@ -340,8 +353,13 @@ pre {
   flex: none;
 }
 
-.vue-screenfull-project-links .theme-control {
+.vue-screenfull-project-links .theme-toggle {
   margin-left: auto;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0.25rem;
 }
 
 @media (max-width: 900px) {
@@ -360,6 +378,10 @@ pre {
     flex-direction: column;
     gap: 0.75rem;
     padding-bottom: 0.5rem;
+  }
+
+  .site-nav > .theme-toggle {
+    align-self: flex-start;
   }
 
   .site-nav ul {
@@ -392,14 +414,6 @@ pre {
     width: auto;
     margin-inline: 0.625rem;
   }
-
-  .theme-control span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
 }
 
 .tsd-typography table {
@@ -428,7 +442,7 @@ pre {
 }
 
 /* TypeDoc bridge */
-:root[data-theme="light"] {
+:root[data-bs-theme="light"] {
   --light-color-background: var(--color-background);
   --light-color-background-secondary: var(--color-surface-muted);
   --light-color-background-active: var(--color-primary-soft);
@@ -438,7 +452,7 @@ pre {
   --light-color-focus-outline: var(--color-focus);
 }
 
-:root[data-theme="dark"] {
+:root[data-bs-theme="dark"] {
   --dark-color-background: var(--color-background);
   --dark-color-background-secondary: var(--color-surface-muted);
   --dark-color-background-active: var(--color-primary-soft);

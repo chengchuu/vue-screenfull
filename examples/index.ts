@@ -9,9 +9,10 @@ createApp({
   setup() {
     const target = ref<HTMLElement | null>(null);
     const image = ref<HTMLElement | null>(null);
-    const video = ref<HTMLVideoElement | null>(null);
+    const videoTarget = ref<HTMLElement | null>(null);
     const history = ref<string[]>(["Playground ready"]);
     const lastAction = ref("none");
+    const lastResultMode = ref<ScreenfullResult["mode"]>("none");
     const actionFeedback = ref(
       "Choose an action to see its structured result here.",
     );
@@ -28,6 +29,7 @@ createApp({
         label === "Test missing-target error";
       screenfull.clearError();
       const result = await action();
+      lastResultMode.value = result.mode;
       actionFeedback.value = result.ok
         ? `${label} completed successfully${result.element ? ` using ${result.mode} mode` : ""}.`
         : `${label} returned ${result.error.code}: ${result.error.message}`;
@@ -36,10 +38,18 @@ createApp({
         ...history.value,
       ].slice(0, 8);
     };
-    const button = (label: string, action: () => Promise<ScreenfullResult>) =>
+    const button = (
+      label: string,
+      action: () => Promise<ScreenfullResult>,
+      className?: string,
+    ) =>
       h(
         "button",
-        { type: "button", onClick: () => void run(label, action) },
+        {
+          class: className,
+          type: "button",
+          onClick: () => void run(label, action),
+        },
         label,
       );
     return () =>
@@ -105,19 +115,26 @@ createApp({
             button("Exit image fullscreen", screenfull.exit),
           ]),
           h("article", { class: "card" }, [
-            h("video", {
-              ref: video,
-              controls: true,
-              muted: true,
-              playsinline: true,
-            }),
+            h("div", { ref: videoTarget, class: "video-target" }, [
+              h("video", {
+                controls: true,
+                muted: true,
+                playsinline: true,
+              }),
+              button(
+                "Exit video fullscreen",
+                screenfull.exit,
+                "video-target__exit",
+              ),
+            ]),
             h("h2", "Video target"),
             h(
               "p",
-              "The sample has no remote media; choose fullscreen to verify video-element targeting.",
+              "This example targets a video wrapper so its exit control remains reachable. Direct HTMLVideoElement targets remain supported by the library API.",
             ),
-            button("View video fullscreen", () => screenfull.request(video)),
-            button("Exit video fullscreen", screenfull.exit),
+            button("View video fullscreen", () =>
+              screenfull.request(videoTarget),
+            ),
           ]),
         ]),
         h("section", { class: "panel" }, [
@@ -132,28 +149,25 @@ createApp({
               h("dd", String(screenfull.isEnabled.value)),
             ]),
             h("div", [
-              h("dt", "Current mode"),
-              h(
-                "dd",
-                screenfull.isFallback.value
-                  ? "fallback"
-                  : screenfull.isFullscreen.value
-                    ? "native"
-                    : "none",
-              ),
+              h("dt", "Last result mode"),
+              h("dd", lastResultMode.value),
+            ]),
+            h("div", [h("dt", "Status"), h("dd", screenfull.status.value)]),
+            h("div", [
+              h("dt", "Is fallback"),
+              h("dd", String(screenfull.isFallback.value)),
             ]),
             h("div", [
-              h("dt", "Current fullscreen element"),
+              h("dt", "Is fullscreen"),
+              h("dd", String(screenfull.isFullscreen.value)),
+            ]),
+            h("div", [
+              h("dt", "Controller fullscreen element"),
               h("dd", screenfull.fullscreenElement.value?.tagName ?? "none"),
             ]),
             h("div", [
-              h("dt", "Pending state"),
-              h(
-                "dd",
-                ["requesting", "exiting"].indexOf(screenfull.status.value) >= 0
-                  ? "yes"
-                  : "no",
-              ),
+              h("dt", "Document fullscreen element"),
+              h("dd", document.fullscreenElement?.tagName ?? "none"),
             ]),
             h("div", [h("dt", "Last action"), h("dd", lastAction.value)]),
             h("div", [

@@ -13,7 +13,7 @@ import type {
   ScreenfullResult,
   ScreenfullState,
   ScreenfullStatus,
-} from "../typing";
+} from "./typing";
 
 const success = (
   mode: "native" | "fallback",
@@ -368,6 +368,7 @@ export function createScreenfullController(
       pending = true;
       currentStatus = "exiting";
       emitChange();
+      const exitMode = fallbackElement ? "fallback" : "native";
       try {
         if (fallbackElement && fallback) {
           const element = fallbackElement;
@@ -389,10 +390,7 @@ export function createScreenfullController(
         }
         previousFocus?.focus?.();
         previousFocus = null;
-        return success(
-          fallbackElement ? "fallback" : "native",
-          state().element,
-        );
+        return success(exitMode, state().element);
       } catch (cause) {
         return report(normalizeError(cause, "exit", doc));
       } finally {
