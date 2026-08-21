@@ -169,24 +169,37 @@ select {
   margin-left: auto !important;
 }
 
-.theme-control {
+.theme-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   flex: none;
-  gap: 0.45rem;
+  box-sizing: border-box;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
   color: var(--color-text-muted);
-  font-size: 0.88rem;
-  font-weight: 650;
+  background: transparent;
+  line-height: 1;
+  cursor: pointer;
 }
 
-.theme-control select {
-  max-width: 5rem;
-  min-height: 1.75rem;
-  padding: 0.2rem 0.3rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.55rem;
+.theme-toggle:hover {
   color: var(--color-text);
-  background: transparent;
+  background: var(--color-surface-muted);
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.theme-toggle [hidden] {
+  display: none;
 }
 
 .nav-toggle {
@@ -340,8 +353,13 @@ pre {
   flex: none;
 }
 
-.vue-screenfull-project-links .theme-control {
+.vue-screenfull-project-links .theme-toggle {
   margin-left: auto;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0.25rem;
 }
 
 @media (max-width: 900px) {
@@ -360,6 +378,10 @@ pre {
     flex-direction: column;
     gap: 0.75rem;
     padding-bottom: 0.5rem;
+  }
+
+  .site-nav > .theme-toggle {
+    align-self: flex-start;
   }
 
   .site-nav ul {
@@ -391,14 +413,6 @@ pre {
   .shell {
     width: auto;
     margin-inline: 0.625rem;
-  }
-
-  .theme-control span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
   }
 }
 

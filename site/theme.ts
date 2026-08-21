@@ -11,6 +11,12 @@ export interface SiteThemeConfig {
 
 const systemThemeQuery = "(prefers-color-scheme: dark)";
 
+function preferenceFromTypeDoc(value: string): ThemePreference | null {
+  if (value === "os") return "system";
+  if (value === "light" || value === "dark") return value;
+  return null;
+}
+
 export function initializeThemeControls({
   storageKey,
 }: SiteThemeConfig): () => void {
@@ -24,95 +30,105 @@ export function initializeThemeControls({
     // Mazey provides its documented light fallback without system detection.
   }
 
-  const resolvedForSession = (preference: ThemePreference): ResolvedTheme =>
+  const initial = resolveThemePreference(storageKey);
+  let selectedPreference: ThemePreference =
+    initial.label === "System" ? "system" : initial.value;
+  let resolvedTheme: ResolvedTheme = initial.value;
+
+  const resolveSelectedTheme = (preference: ThemePreference): ResolvedTheme =>
     preference === "system" ? (media?.matches ? "dark" : "light") : preference;
 
-  let selectedPreference: ThemePreference = "system";
-  let resolvedTheme: ResolvedTheme = "light";
-  let sessionOnlySelection = false;
-
-  const apply = (preference: ThemePreference, resolved: ResolvedTheme) => {
-    selectedPreference = preference;
-    resolvedTheme = resolved;
-    root.dataset.bsTheme = resolved;
-    root.dataset.theme = resolved;
-    root.style.colorScheme = resolved;
+  const apply = (preference: ThemePreference, theme: ResolvedTheme) => {
+    resolvedTheme = theme;
+    root.dataset.bsTheme = theme;
+    root.dataset.theme = theme;
+    root.style.colorScheme = theme;
 
     const themeColor = document.querySelector<HTMLMetaElement>(
       'meta[name="theme-color"][data-theme-color]',
     );
     if (themeColor) {
       themeColor.content =
-        resolved === "dark"
+        theme === "dark"
           ? (themeColor.dataset.themeColorDark ?? themeColor.content)
           : (themeColor.dataset.themeColorLight ?? themeColor.content);
     }
 
+    const typeDocPreference = preference === "system" ? "os" : preference;
     try {
-      window.localStorage.setItem(
-        "tsd-theme",
-        preference === "system" ? "os" : preference,
-      );
+      window.localStorage.setItem("tsd-theme", typeDocPreference);
     } catch {
       // TypeDoc synchronization is optional when storage is unavailable.
     }
 
+    const typeDocControl = document.getElementById("tsd-theme");
+    if (
+      typeDocControl instanceof HTMLSelectElement &&
+      typeDocControl.value !== typeDocPreference
+    ) {
+      typeDocControl.value = typeDocPreference;
+    }
+
+    const currentTheme = theme === "light" ? "Light" : "Dark";
+    const nextTheme = theme === "light" ? "dark" : "light";
     document
-      .querySelectorAll<HTMLSelectElement>("[data-theme-select]")
-      .forEach((control) => {
-        if (control.value !== preference) control.value = preference;
+      .querySelectorAll<HTMLButtonElement>("[data-theme-toggle]")
+      .forEach((button) => {
+        button.setAttribute(
+          "aria-label",
+          `Current theme: ${currentTheme}. Switch to ${nextTheme} theme.`,
+        );
+        button
+          .querySelectorAll<SVGElement>("[data-theme-icon]")
+          .forEach((icon) => {
+            icon.toggleAttribute("hidden", icon.dataset.themeIcon !== theme);
+          });
       });
   };
 
-  const initial = resolveThemePreference(storageKey);
-  apply(initial.label === "System" ? "system" : initial.value, initial.value);
+  const handleClick = (event: MouseEvent) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLButtonElement>("[data-theme-toggle]");
+    if (!button) return;
+
+    selectedPreference = resolvedTheme === "light" ? "dark" : "light";
+    setThemePreference(storageKey, selectedPreference);
+    apply(selectedPreference, selectedPreference);
+  };
 
   const handleChange = (event: Event) => {
     const control = event.target;
-    if (!(control instanceof HTMLSelectElement)) return;
-    if (!control.matches("[data-theme-select]")) return;
-
-    const preference = control.value as ThemePreference;
-    let persisted: boolean;
-    try {
-      persisted = setThemePreference(storageKey, preference);
-    } catch (error) {
-      if (!(error instanceof TypeError)) throw error;
+    if (!(control instanceof HTMLSelectElement) || control.id !== "tsd-theme")
+      return;
+    const preference = preferenceFromTypeDoc(control.value);
+    if (!preference) {
       apply(selectedPreference, resolvedTheme);
       return;
     }
 
-    const current = resolveThemePreference(storageKey);
-    if (persisted) {
-      sessionOnlySelection = false;
-      apply(
-        current.label === "System" ? "system" : current.value,
-        current.value,
-      );
-      return;
-    }
-
-    sessionOnlySelection = true;
-    apply(preference, resolvedForSession(preference));
+    selectedPreference = preference;
+    setThemePreference(storageKey, preference);
+    apply(preference, resolveSelectedTheme(preference));
   };
 
-  const handleSystemTheme = () => {
-    if (selectedPreference !== "system") return;
-    const current = resolveThemePreference(storageKey);
-    apply(
-      "system",
-      sessionOnlySelection ? resolvedForSession("system") : current.value,
-    );
+  const handleSystemTheme = (event: MediaQueryListEvent) => {
+    if (selectedPreference === "system") {
+      apply("system", event.matches ? "dark" : "light");
+    }
   };
 
   const handleDomReady = () => apply(selectedPreference, resolvedTheme);
 
   root.dataset.themeControlsReady = "true";
+  apply(selectedPreference, resolvedTheme);
+  document.addEventListener("click", handleClick);
   document.addEventListener("change", handleChange);
   document.addEventListener("DOMContentLoaded", handleDomReady, { once: true });
   const removeMediaListener = listenMediaQueryChanges(media, handleSystemTheme);
 
   return () => {
+    document.removeEventListener("click", handleClick);
     document.removeEventListener("change", handleChange);
     document.removeEventListener("DOMContentLoaded", handleDomReady);
     removeMediaListener();
