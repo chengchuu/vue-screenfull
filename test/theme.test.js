@@ -166,15 +166,19 @@ test("theme toggles use exact circular dimensions", () => {
   expect(icon).toMatch(/(?:^|\s)height: 16px;/);
 });
 
-test("URL preference overrides storage and synchronizes every theme side effect", () => {
+test("URL preference overrides storage without persisting the override", () => {
   renderThemeControls({ typeDoc: true });
-  history.replaceState({}, "", "/?theme=dark");
+  history.replaceState(
+    {},
+    "",
+    `/?${encodeURIComponent(THEME_CONFIG.storageKey)}=dark`,
+  );
   localStorage.setItem(THEME_CONFIG.storageKey, "light");
   installMatchMedia(mediaQuery(false));
 
   const cleanup = initializeThemeControls(THEME_CONFIG);
   expectRenderedTheme("dark");
-  expect(localStorage.getItem(THEME_CONFIG.storageKey)).toBe("dark");
+  expect(localStorage.getItem(THEME_CONFIG.storageKey)).toBe("light");
   expect(localStorage.getItem("tsd-theme")).toBe("dark");
   expect(document.querySelector("#tsd-theme").value).toBe("dark");
   cleanup();

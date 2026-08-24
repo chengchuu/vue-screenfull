@@ -9,15 +9,13 @@
 [license-url]: https://github.com/chengchuu/vue-screenfull/blob/main/LICENSE
 
 `vue-screenfull` provides reactive, strongly typed fullscreen controls for Vue 3, with SSR-safe
-imports and an optional CSS fallback when native arbitrary-element fullscreen is unavailable.
+imports and an optional CSS fallback when native element fullscreen is unavailable.
 
 - [Project website](https://chengchuu.github.io/vue-screenfull/)
 - [Live playground](https://chengchuu.github.io/vue-screenfull/playground/)
 - [API documentation](https://chengchuu.github.io/vue-screenfull/api/)
 
 ## Installation
-
-Install the package in a Vue 3.3 or later project:
 
 ```bash
 npm install vue-screenfull
