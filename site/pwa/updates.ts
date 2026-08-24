@@ -1,4 +1,6 @@
+import { isSafePWAEnv } from "mazey";
 import { Workbox } from "workbox-window";
+import { announcePwaStatus } from "./status";
 
 export interface ServiceWorkerConfig {
   appName: string;
@@ -18,25 +20,22 @@ type WorkboxFactory = (url: string, options: { scope: string }) => WorkboxLike;
 
 const RELOAD_KEY = "vue-screenfull-pwa-update-reload";
 
-function announce(documentRef: Document, message: string): void {
-  documentRef
-    .querySelectorAll<HTMLElement>("[data-pwa-status]")
-    .forEach((region) => (region.textContent = message));
-}
-
 export function shouldRegisterServiceWorker(
   config: ServiceWorkerConfig,
-  locationRef: Location,
+  documentRef: Document,
+  windowRef: Window,
   navigatorRef: Navigator,
 ): boolean {
-  const local = new Set(["localhost", "127.0.0.1", "[::1]"]).has(
-    locationRef.hostname,
-  );
   return (
     config.enabled &&
-    "serviceWorker" in navigatorRef &&
-    (locationRef.protocol === "https:" || local) &&
-    locationRef.pathname.startsWith(config.scope)
+    isSafePWAEnv({
+      scope: config.scope,
+      environment: {
+        window: windowRef,
+        navigator: navigatorRef,
+        document: documentRef,
+      },
+    })
   );
 }
 
@@ -71,7 +70,7 @@ export function monitorWorkboxUpdates(
       (event as Event & { wasWaitingBeforeRegister?: boolean })
         .wasWaitingBeforeRegister,
     );
-    announce(
+    announcePwaStatus(
       documentRef,
       `A new version of the ${appName} website is ${wasWaiting ? "ready" : "available"}.`,
     );
@@ -80,7 +79,7 @@ export function monitorWorkboxUpdates(
     if (!updateAvailable || activationApproved) return;
     activationApproved = true;
     if (button) button.disabled = true;
-    announce(
+    announcePwaStatus(
       documentRef,
       "Activating the website update. This page will reload once.",
     );
@@ -96,7 +95,7 @@ export function monitorWorkboxUpdates(
     if (!activationApproved || reloadHandled) {
       const lifecycleEvent = event as Event & { isUpdate?: boolean };
       if (!updateAvailable && lifecycleEvent.isUpdate !== true) return;
-      announce(
+      announcePwaStatus(
         documentRef,
         "The website updated in another tab. Refresh when it is convenient.",
       );
@@ -130,7 +129,9 @@ export async function registerServiceWorker(
   createWorkbox: WorkboxFactory = (url, options) =>
     new Workbox(url, options) as WorkboxLike,
 ): Promise<ServiceWorkerRegistration | null> {
-  if (!shouldRegisterServiceWorker(config, windowRef.location, navigatorRef))
+  if (
+    !shouldRegisterServiceWorker(config, documentRef, windowRef, navigatorRef)
+  )
     return null;
   const workbox = createWorkbox(config.url, { scope: config.scope });
   monitorWorkboxUpdates(
@@ -147,7 +148,7 @@ export async function registerServiceWorker(
       `Failed to register the ${config.appName} service worker.`,
       error,
     );
-    announce(documentRef, "Offline support could not be started.");
+    announcePwaStatus(documentRef, "Offline support could not be started.");
     return null;
   }
 }
