@@ -8,31 +8,97 @@
 [license-image]: https://img.shields.io/npm/l/vue-screenfull.svg
 [license-url]: https://github.com/chengchuu/vue-screenfull/blob/main/LICENSE
 
-专为 Vue 3 设计的响应式、强类型且支持 SSR 的全屏工具。
-还提供可选的 CSS 伪全屏回退方案。
+`vue-screenfull` 为 Vue 3 提供响应式、强类型的全屏控制。在服务端渲染
+(Server-Side Rendering，SSR) 期间也可以安全导入该软件包。原生任意元素全屏不可用时，可以启用
+CSS 伪全屏回退方案。
 
 - [项目网站](https://chengchuu.github.io/vue-screenfull/)
 - [在线演练场](https://chengchuu.github.io/vue-screenfull/playground/)
 - [API 文档](https://chengchuu.github.io/vue-screenfull/api/)
 
-## 功能特性
-
-- 响应式 Composition API 状态，支持自动清理作用域。
-- 检测标准 API。
-- 检测带 WebKit、Mozilla、Microsoft 前缀的 API。
-- 支持 Vue 模板引用、组件引用、元素和安全的 CSS 选择器。
-- 返回结构化结果和可操作的错误，不会静默忽略 Promise 拒绝。
-- 提供无渲染组件、指令、可选插件和轻量级框架控制器。
-- 不依赖全屏包装器或其他运行时依赖；Vue 仍是对等依赖。
-- 提供 CJS、ESM、浏览器 IIFE、源映射和类型声明。
-
 ## 安装
+
+在 Vue 3.3 或更高版本的项目中安装软件包：
 
 ```bash
 npm install vue-screenfull
 ```
 
-浏览器包为 `lib/vue-screenfull.min.js`。它会暴露 `VUE_SCREENFULL`，并要求通过全局变量 `Vue` 访问 Vue。
+软件包根入口 `vue-screenfull` 提供 Vue 组合式函数、组件、指令和插件。该入口在运行时需要
+Vue 3。Vue 被标记为可选的对等依赖，因此只使用框架无关入口 `vue-screenfull/browser` 的项目
+无需安装 Vue。
+
+默认浏览器 IIFE 位于 `lib/vue-screenfull.min.js`。它会暴露 `VUE_SCREENFULL`，并要求通过全局
+变量 `Vue` 访问 Vue。
+
+### 无 Vue 浏览器入口
+
+如果调用方没有 Vue 根实例，请使用 `vue-screenfull/browser`。该子路径只导出 `createScreenfullController`、`detectFullscreenApi` 和框架无关的类型。运行时不会加载 Vue 或 Mazey。
+
+通过 npm 使用：
+
+```ts
+import { createScreenfullController } from "vue-screenfull/browser";
+
+const controller = createScreenfullController({ restoreFocus: true });
+const target = document.querySelector("#player");
+const button = document.querySelector("#toggle-fullscreen");
+const toggle = () => controller.toggle(target);
+
+button?.addEventListener("click", toggle);
+
+async function dispose() {
+  button?.removeEventListener("click", toggle);
+  await controller.destroy();
+}
+
+// 集成销毁时调用 dispose()。
+```
+
+通过浏览器原生 ES 模块使用：
+
+```html
+<script type="module">
+  import { createScreenfullController } from "https://cdn.jsdelivr.net/npm/vue-screenfull/lib/browser.mjs";
+
+  const controller = createScreenfullController();
+  const target = document.querySelector("#player");
+  const button = document.querySelector("#toggle-fullscreen");
+  const toggle = () => controller.toggle(target);
+
+  button?.addEventListener("click", toggle);
+
+  async function dispose() {
+    button?.removeEventListener("click", toggle);
+    await controller.destroy();
+  }
+
+  // 集成销毁时调用 dispose()。
+</script>
+```
+
+通过经典脚本使用：
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/vue-screenfull/lib/vue-screenfull.browser.min.js"></script>
+<script>
+  const controller = VUE_SCREENFULL_BROWSER.createScreenfullController();
+  const target = document.querySelector("#player");
+  const button = document.querySelector("#toggle-fullscreen");
+  const toggle = () => controller.toggle(target);
+
+  button?.addEventListener("click", toggle);
+
+  function dispose() {
+    button?.removeEventListener("click", toggle);
+    return controller.destroy();
+  }
+
+  // 集成销毁时调用 dispose()。
+</script>
+```
+
+请在点击、键盘或触摸事件处理程序中直接调用 `request` 或 `toggle`。浏览器通常要求短暂的用户激活状态。请保留控制器，并在集成销毁时调用 `destroy()`。该方法会清理监听器和正在运行的 CSS 回退方案。
 
 ## 浏览器支持
 
@@ -44,10 +110,10 @@ npm install vue-screenfull
 
 ```vue
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { ref } from "vue";
 import { useScreenfull } from "vue-screenfull";
 
-const target = useTemplateRef<HTMLElement>("target");
+const target = ref<HTMLElement | null>(null);
 const { isEnabled, isFullscreen, error, toggle } = useScreenfull();
 </script>
 
@@ -68,9 +134,10 @@ const { isEnabled, isFullscreen, error, toggle } = useScreenfull();
 
 ```vue
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { ref } from "vue";
 import { useScreenfullTarget } from "vue-screenfull";
-const panel = useTemplateRef<HTMLElement>("panel");
+
+const panel = ref<HTMLElement | null>(null);
 const { request, isFullscreen } = useScreenfullTarget(panel);
 </script>
 <template>
@@ -90,7 +157,9 @@ const result = await toggle(target, { navigationUI: "hide" });
 if (!result.ok) console.warn(result.error.code, result.error.suggestion);
 ```
 
-对于图片内容，请传入图片的模板引用。对于视频，请传入 `HTMLVideoElement` 引用。部分移动浏览器提供仅限视频的全屏功能，与任意元素全屏相互独立。
+对于图片内容，请传入图片的模板引用。`HTMLVideoElement` 也是有效目标。如果视频演示需要自定义
+控件，请将视频及其控件放入同一个容器，并将该容器设为目标。这样可以确保原生或回退全屏模式下
+仍能使用这些控件。部分移动浏览器提供由浏览器管理的视频全屏功能，该功能与任意元素全屏相互独立。
 
 ## 退出全屏
 
@@ -98,7 +167,7 @@ if (!result.ok) console.warn(result.error.code, result.error.suggestion);
 <button type="button" @click="exit">Exit fullscreen</button>
 ```
 
-请始终提供可见的退出按钮，启用回退方案时尤其如此。Escape 键通常可以退出，但无法可靠地覆盖浏览器的 Escape 键行为。通过浏览器界面发起的退出操作会由原生变更事件反映。
+请在全屏目标内保留可见的退出按钮，启用回退方案时尤其如此。Escape 键通常可以退出，但无法可靠地覆盖浏览器的 Escape 键行为。通过浏览器界面发起的退出操作会由原生变更事件反映。
 
 ## 检查支持情况
 
@@ -155,14 +224,17 @@ CSS 回退方案会将 `HTMLElement` 固定到可视视口。它会保留自身�
   v-slot="screenfull"
   @error="report"
 >
-  <button type="button" @click="screenfull.toggle()">
-    {{ screenfull.isFullscreen ? "Exit" : "Open article" }}
-  </button>
-  <button v-if="screenfull.isFullscreen" type="button" @click="screenfull.exit">Exit</button>
+  <article id="article">
+    <button type="button" @click="screenfull.toggle()">
+      {{ screenfull.isFullscreen.value ? "Exit" : "Open article" }}
+    </button>
+  </article>
 </Screenfull>
 ```
 
-无渲染组件会触发 `change`、`enter`、`exit`、`error` 和 `fallback` 事件。其默认插槽接收组合式函数的所有引用和操作。组件不会施加任何视觉样式。
+无渲染组件会触发 `change`、`enter`、`exit`、`error` 和 `fallback` 事件。其默认插槽接收组合式
+函数的所有引用和操作。组件不会施加任何视觉样式。`screenfull` 是作用域插槽对象，因此需要使用
+`.value` 访问其中嵌套的 `ref`。
 
 ## 指令用法
 
@@ -196,10 +268,10 @@ createApp(App).use(VueScreenfull).mount("#app");
 
 ## 高级用法
 
-轻量级框架控制器适用于迁移和非组件集成:
+框架无关的控制器适用于迁移和非组件集成：
 
 ```ts
-import { createScreenfullController } from "vue-screenfull";
+import { createScreenfullController } from "vue-screenfull/browser";
 
 const controller = createScreenfullController({ restoreFocus: true });
 const onChange = (state) => console.log(state.isFullscreen, state.element);
@@ -313,6 +385,8 @@ if (isEnabled.value) {
 
 操作会解析为 `{ ok, mode, element, error }`。`mode` 为 `native`、`fallback` 或 `none`。生成的 TypeDoc 发布于 [API 文档网站](https://chengchuu.github.io/vue-screenfull/api/)。
 
+`vue-screenfull/browser` 子路径只导出 `createScreenfullController`、`detectFullscreenApi` 和框架无关的控制器类型。
+
 ## 在线演练场
 
 已部署的版本位于 [vue-screenfull 在线演练场](https://chengchuu.github.io/vue-screenfull/playground/)。其中包含页面、元素、图片样式和视频目标。它还提供显式退出、诊断、无效目标反馈和事件历史记录。其他内容包括无障碍、iframe、移动端和迁移说明。使用以下命令在本地运行:
@@ -333,8 +407,6 @@ Worker 更新仍由用户控制。有新版本等待更新时，选择 **立即�
 
 ## 开发
 
-CI 使用 Node.js 22。
-
 ```bash
 npm install
 npm run typecheck
@@ -351,16 +423,25 @@ npm pack --dry-run
 
 常规的 `npm run dev` 不会注册生产环境 Worker。若要在类似生产环境中测试 PWA，请运行 `npm run docs`。然后在 localhost 的 `/vue-screenfull/` 路径下提供生成的 `docs` 目录。
 
-有关浏览器矩阵和真实浏览器测试策略，请参阅 `MANUAL_TESTING.md`。生产输出仍包含以下文件:
+有关浏览器矩阵和真实浏览器测试策略，请参阅 [`guides/MANUAL_TESTING.md`](./guides/MANUAL_TESTING.md)。根入口会生成以下文件：
 
 - `lib/index.cjs.js`
 - `lib/index.esm.js`
+- `lib/index.mjs`
 - `lib/vue-screenfull.min.js`
 - `lib/index.d.ts`
 - `lib/typing.d.ts`
 - `lib/global.d.ts`
 
-原生 Node ESM 通过额外的条件入口 `lib/index.mjs` 解析。
+框架无关的入口会生成以下文件：
+
+- `lib/browser.cjs.js`
+- `lib/browser.esm.js`
+- `lib/browser.mjs`
+- `lib/browser.d.ts`
+- `lib/vue-screenfull.browser.min.js`
+
+JavaScript 软件包会包含源映射。
 
 ## 许可证与致谢
 

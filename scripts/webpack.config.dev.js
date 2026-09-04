@@ -6,6 +6,8 @@ const {
   MANIFEST_URL,
   SERVICE_WORKER_URL,
   SITE_BASE,
+  THEME_COLOR,
+  THEME_CONFIG,
 } = require("./site-config");
 const _resolve = (_path) => path.resolve(__dirname, _path);
 const productionPages = process.env.GITHUB_PAGES === "true";
@@ -21,6 +23,7 @@ module.exports = {
   mode: "development",
   entry: {
     pwa: _resolve("../site/pwa.ts"),
+    theme: _resolve("../site/theme-entry.ts"),
     playground: _resolve("../examples/index.ts"),
     ...(pwaConfig.enabled
       ? {
@@ -63,6 +66,10 @@ module.exports = {
       templateParameters: {
         FAVICON_URL: `${publicPath}images/${FAVICON_FILE}`,
         MANIFEST_URL: productionPages ? MANIFEST_URL : null,
+        THEME_COLOR,
+        THEME_COLOR_DARK: THEME_CONFIG.colorDark,
+        THEME_COLOR_LIGHT: THEME_CONFIG.colorLight,
+        THEME_SCRIPT_URL: "./assets/theme.js",
       },
     }),
     new HtmlWebpackPlugin({
@@ -73,11 +80,16 @@ module.exports = {
       templateParameters: {
         FAVICON_URL: `${publicPath}images/${FAVICON_FILE}`,
         MANIFEST_URL: productionPages ? MANIFEST_URL : null,
+        THEME_COLOR,
+        THEME_COLOR_DARK: THEME_CONFIG.colorDark,
+        THEME_COLOR_LIGHT: THEME_CONFIG.colorLight,
+        THEME_SCRIPT_URL: "../assets/theme.js",
       },
     }),
     new webpack.DefinePlugin({
       __PWA_SCOPE__: JSON.stringify(SITE_BASE),
       __SITE_PWA_CONFIG__: JSON.stringify(pwaConfig),
+      __SITE_THEME_CONFIG__: JSON.stringify(THEME_CONFIG),
       __VUE_OPTIONS_API__: JSON.stringify(false),
       __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
       __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false),

@@ -313,10 +313,40 @@ test("activates CSS fallback and restores styles and body scroll", async () => {
   expect(target.style.position).toBe("fixed");
   expect(target.classList.contains("vue-screenfull-fallback")).toBe(true);
   expect(document.body.style.overflow).toBe("hidden");
-  await controller.exit();
+  await expect(controller.exit()).resolves.toMatchObject({
+    ok: true,
+    mode: "fallback",
+    element: null,
+  });
   expect(target.style.position).toBe("relative");
   expect(target.classList.contains("vue-screenfull-fallback")).toBe(false);
   expect(document.body.style.overflow).toBe("visible");
+  await controller.destroy();
+});
+
+test("keeps a target-local exit reachable and restores initiating focus", async () => {
+  window.scrollTo = jest.fn();
+  const trigger = document.body.appendChild(document.createElement("button"));
+  const target = document.body.appendChild(document.createElement("section"));
+  target.appendChild(document.createElement("video"));
+  const exit = target.appendChild(document.createElement("button"));
+  trigger.focus();
+  const controller = createScreenfullController({
+    fallback: "css",
+    restoreFocus: true,
+  });
+
+  await expect(controller.request(target)).resolves.toMatchObject({
+    ok: true,
+    mode: "fallback",
+    element: target,
+  });
+  exit.focus();
+  expect(document.activeElement).toBe(exit);
+
+  await controller.exit();
+  expect(document.activeElement).toBe(trigger);
+  expect(target.contains(exit)).toBe(true);
   await controller.destroy();
 });
 
@@ -398,6 +428,7 @@ test("resolves elements, Vue refs, component refs, selectors, and defaults", () 
   expect(resolveScreenfullTarget("[", document)).toBeNull();
   expect(resolveScreenfullTarget(ref(target), document)).toBe(target);
   expect(resolveScreenfullTarget(ref({ $el: target }), document)).toBe(target);
+  expect(resolveScreenfullTarget({ nodeType: 1 }, document)).toBeNull();
 });
 
 test("composable instances synchronize through document events and clean up with scopes", async () => {

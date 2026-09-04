@@ -4,12 +4,14 @@ import { DEFAULT_EXTENSIONS } from "@babel/core";
 import terser from "@rollup/plugin-terser";
 import { dts } from "rollup-plugin-dts";
 import { rmSync } from "node:fs";
+import { createRequire } from "node:module";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import pkg from "../package.json" with { type: "json" };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
 const _resolve = (_path) => path.resolve(__dirname, _path);
 const pkgName = pkg.name;
 const iifeName = pkgName.replace(/-/g, "_").toUpperCase();
@@ -17,13 +19,27 @@ const pkgVersion =
   process.env.SCRIPTS_NPM_PACKAGE_VERSION || process.env.VERSION || "unknown";
 const debugMode = process.env.SCRIPTS_NPM_PACKAGE_DEBUG;
 const inputResolve = _resolve("../src/index.ts");
+const browserInputResolve = _resolve("../src/browser.ts");
+const browserIifeName = `${iifeName}_BROWSER`;
 const banner =
   "/*!\n" +
   ` * ${pkgName} v${pkgVersion}\n` +
   ` * (c) 2018-${new Date().getFullYear()} Cheng https://www.npmjs.com/package/vue-screenfull\n` +
   " * Released under the MIT License.\n" +
   " */";
-const external = ["vue"];
+const moduleExternal = ["vue", "mazey"];
+const browserExternal = ["vue"];
+
+const mazeyPackagePath = require.resolve("mazey/package.json");
+const mazeyPackage = require(mazeyPackagePath);
+const mazeyEntry = path.resolve(dirname(mazeyPackagePath), mazeyPackage.module);
+
+const resolveMazey = () => ({
+  name: "resolve-mazey",
+  resolveId(source) {
+    return source === "mazey" ? mazeyEntry : null;
+  },
+});
 
 const clean = () => ({
   name: "clean-lib",
@@ -58,7 +74,7 @@ const typingDtsConf = {
     },
   ],
   plugins: [dts()],
-  external,
+  external: moduleExternal,
 };
 const indexDtsConf = {
   input: _resolve("../src/index.ts"),
@@ -70,7 +86,17 @@ const indexDtsConf = {
     },
   ],
   plugins: [dts()],
-  external,
+  external: moduleExternal,
+};
+const browserDtsConf = {
+  input: browserInputResolve,
+  output: [
+    {
+      file: _resolve("../lib/browser.d.ts"),
+      format: "es",
+    },
+  ],
+  plugins: [dts()],
 };
 const globalDtsConf = {
   input: _resolve("../types/global.d.ts"),
@@ -82,7 +108,7 @@ const globalDtsConf = {
     },
   ],
   plugins: [dts()],
-  external,
+  external: moduleExternal,
 };
 
 if (debugMode !== "open") {
@@ -129,7 +155,7 @@ export default [
       },
     ],
     plugins: [clean(), ...plugins],
-    external,
+    external: moduleExternal,
   },
   {
     input: inputResolve,
@@ -145,10 +171,54 @@ export default [
         plugins: iifePlugins,
       },
     ],
-    plugins: [...plugins],
-    external,
+    plugins: [resolveMazey(), ...plugins],
+    external: browserExternal,
+  },
+  {
+    input: browserInputResolve,
+    output: [
+      {
+        file: _resolve("../lib/browser.cjs.js"),
+        format: "cjs",
+        exports: "named",
+        banner,
+        sourcemap: true,
+        plugins: iifePlugins,
+      },
+      {
+        file: _resolve("../lib/browser.esm.js"),
+        format: "esm",
+        banner,
+        sourcemap: true,
+        plugins: iifePlugins,
+      },
+      {
+        file: _resolve("../lib/browser.mjs"),
+        format: "esm",
+        banner,
+        sourcemap: true,
+        plugins: iifePlugins,
+      },
+    ],
+    plugins,
+  },
+  {
+    input: browserInputResolve,
+    output: [
+      {
+        file: _resolve(`../lib/${pkgName}.browser.min.js`),
+        format: "iife",
+        name: browserIifeName,
+        exports: "named",
+        banner,
+        sourcemap: true,
+        plugins: iifePlugins,
+      },
+    ],
+    plugins,
   },
   indexDtsConf,
+  browserDtsConf,
   typingDtsConf,
   globalDtsConf,
 ];
