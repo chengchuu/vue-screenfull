@@ -1,6 +1,6 @@
 {
   "name": "vue-screenfull",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Reactive, strongly typed, SSR-safe fullscreen utilities for Vue 3.",
   "main": "lib/index.cjs.js",
   "module": "lib/index.esm.js",
@@ -37,8 +37,7 @@
   ],
   "scripts": {
     "dev": "webpack serve --config ./scripts/webpack.config.dev.js",
-    "build": "cross-env SCRIPTS_NPM_PACKAGE_DEBUG=close SCRIPTS_NPM_PACKAGE_VERSION=$npm_package_version rollup --config ./scripts/rollup.config.mjs",
-    "build:debug": "cross-env SCRIPTS_NPM_PACKAGE_DEBUG=open SCRIPTS_NPM_PACKAGE_VERSION=$npm_package_version rollup --config ./scripts/rollup.config.mjs",
+    "build": "cross-env SCRIPTS_NPM_PACKAGE_VERSION=$npm_package_version rollup --config ./scripts/rollup.config.mjs",
     "build:dev": "webpack --config ./scripts/webpack.config.dev.js",
     "build:playground": "cross-env GITHUB_PAGES=true webpack --mode production --config ./scripts/webpack.config.dev.js",
     "test": "jest",

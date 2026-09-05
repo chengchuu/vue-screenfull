@@ -2,6 +2,7 @@
 const { readFileSync } = require("node:fs");
 const path = require("node:path");
 const { transformApiHtml } = require("../scripts/build-pages");
+const { attribute } = require("../scripts/validate-seo");
 const { API_URL, SITE_URL } = require("../scripts/site-config");
 
 const typeDocThemeSelector =
@@ -35,6 +36,15 @@ function navigationLinks(file, navigationId) {
       .trim(),
   ]);
 }
+
+test("SEO attribute parsing accepts unquoted HTML attributes", () => {
+  const html =
+    "<a href=./playground/ data-nav-toggle><button class=theme-toggle type=button id=install>Open</button></a>";
+  expect(attribute(html, "a", "href", "./playground/")).not.toBeNull();
+  expect(attribute(html, "button", "class", "theme-toggle")).not.toBeNull();
+  expect(attribute(html, "button", "type", "button")).not.toBeNull();
+  expect(attribute(html, "button", "id", "install")).not.toBeNull();
+});
 
 test("Home and Playground use the stable five-link navigation", () => {
   expect(navigationLinks("site/index.html", "primary-navigation")).toEqual([
