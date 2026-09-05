@@ -27,9 +27,12 @@ function matches(html, expression) {
 
 function attributes(tag) {
   return Object.fromEntries(
-    matches(tag, /([:\w-]+)(?:=["']([^"']*)["'])?/g).map((item) => [
+    matches(
+      tag,
+      /([:\w-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g,
+    ).map((item) => [
       item[1].toLowerCase(),
-      item[2] ?? "",
+      item[2] ?? item[3] ?? item[4] ?? "",
     ]),
   );
 }
@@ -255,7 +258,13 @@ function validatePage({
   validateThemeToggles(label, html, expectedThemeButtons);
   if (
     requireNavigationToggle &&
-    !/<button\b[^>]*aria-expanded="false"[^>]*data-nav-toggle/.test(html)
+    !matches(html, /<button\b[^>]*>/gi).some((match) => {
+      const values = attributes(match[0]);
+      return (
+        values["aria-expanded"] === "false" &&
+        Object.hasOwn(values, "data-nav-toggle")
+      );
+    })
   )
     fail(`${label}: missing collapsed mobile navigation control`);
   return {
