@@ -20,7 +20,7 @@ Keep the package generic, browser-friendly, and easy to rename. Preserve the pac
 - `test`: Node and jsdom Jest tests for public behavior.
 - `type-tests`: compile-time checks for public root imports and narrowing.
 - `examples`: accessible Webpack playground and diagnostics UI.
-- `MANUAL_TESTING.md`: repeatable real-browser and operating-system matrix.
+- `guides/MANUAL_TESTING.md`: repeatable real-browser and operating-system matrix.
 - `scripts/rollup.config.mjs`: production JavaScript and declaration builds.
 - `scripts/webpack.config.dev.js`: development/demo build and dev server.
 - `site/pwa.ts` and `site/pwa/`: browser-native install handling and Workbox-window lifecycle UX.
@@ -55,10 +55,10 @@ Keep the conditional `exports` map aligned with the legacy `main`, `module`, and
 Native Node ESM must resolve to `lib/index.mjs`; pointing it at `index.esm.js` is invalid while the
 package remains CommonJS by default. Preserve the documented legacy bundle subpath exports.
 
-The package intentionally has no runtime dependencies. Vue is a peer dependency and a development
-dependency, and must remain external in Rollup. Put build, test, lint, and documentation tools in
-`devDependencies`. Do not add a fullscreen wrapper such as `screenfull` as a dependency; compatibility
-logic belongs in this package.
+Mazey is the package's shared runtime utility dependency; verify its installed public contracts
+before reuse. Vue is a peer dependency and a development dependency, and must remain external in
+Rollup. Put build, test, lint, and documentation tools in `devDependencies`. Do not add a fullscreen
+wrapper such as `screenfull` as a dependency; compatibility logic belongs in this package.
 
 When changing a public function, value, or type, check all of these together:
 
@@ -202,7 +202,7 @@ manifest, not only whether Rollup exits successfully.
 Use `@jest-environment node` for import/SSR checks and `@jest-environment jsdom` for DOM, Vue,
 directive, component, and compatibility behavior. Native user-gesture fullscreen is not reliable in
 headless CI; test browser-name mapping and transition logic with deterministic fakes, then document
-real-browser coverage in `MANUAL_TESTING.md`. Keep `type-tests/public.ts` checking result narrowing
+real-browser coverage in `guides/MANUAL_TESTING.md`. Keep `type-tests/public.ts` checking result narrowing
 and root-only consumer imports.
 
 Do not run `scripts/change-package-name.js` casually during verification because it mutates
@@ -243,11 +243,13 @@ A generated `site-version.json` fingerprints deployable Pages content so meaning
 produce a waiting worker without precaching unversioned bundles. Normal `npm run dev` must keep
 production worker registration disabled.
 
-The public pages share `site/theme.css` and `site/theme.js`. Theme preference values are `system`,
-`light`, and `dark`, stored under `vue-screenfull-theme`; the TypeDoc bridge mirrors the resolved
-choice into its generated pages. Keep the inline pre-paint initializer small and synchronized across
-the root template, playground template, and API transformation. Mobile navigation must remain
-progressively enhanced, keyboard operable, and usable without hiding links when JavaScript fails.
+The public pages share `site/theme.css` and the Webpack entry `site/theme-entry.ts`, which bundles
+`site/theme.ts` to `assets/theme.js`. Theme preference values are `system`, `light`, and `dark`,
+stored under `vue-screenfull-theme`; the TypeDoc bridge mirrors the resolved choice into its
+generated pages. Keep the synchronous head-loaded theme bundle and its metadata synchronized across
+the root template, playground template, and API transformation so it can apply the initial theme
+before CSS paints. Mobile navigation must remain progressively enhanced, keyboard operable, and
+usable without hiding links when JavaScript fails.
 
 README changes to browser support must use runtime feature-detection language and distinguish tested
 platforms from documented targets. Do not claim that CSS fallback hides browser/OS UI or that

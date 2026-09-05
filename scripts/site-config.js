@@ -3,6 +3,11 @@ const pkg = require("../package.json");
 const SITE_URL = new URL(pkg.homepage).href;
 const SITE_BASE = new URL(SITE_URL).pathname;
 const FAVICON_FILE = "logo-dark-circle-transparent-32x32.png";
+const THEME_CONFIG = Object.freeze({
+  storageKey: "vue-screenfull-theme",
+  colorLight: "#f7f8fc",
+  colorDark: "#0d1220",
+});
 const PWA_ICONS = [
   {
     file: "logo-dark-circle-transparent-192x192.png",
@@ -36,7 +41,8 @@ module.exports = Object.freeze({
   MANIFEST_URL: `${SITE_BASE}manifest.webmanifest`,
   SERVICE_WORKER_URL: `${SITE_BASE}service-worker.js`,
   THEME_COLOR: "#5b3fd6",
-  BACKGROUND_COLOR: "#f7f8fc",
+  THEME_CONFIG,
+  BACKGROUND_COLOR: THEME_CONFIG.colorLight,
   PWA_ICONS,
   PWA_NAME: "vue-screenfull documentation",
   PWA_SHORT_NAME: "vue-screenfull",

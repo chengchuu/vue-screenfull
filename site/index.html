@@ -13,7 +13,14 @@
     <% if (MANIFEST_URL) { %>
     <link rel="manifest" href="<%= MANIFEST_URL %>" />
     <% } %>
-    <meta name="theme-color" content="#5b3fd6" />
+    <meta
+      name="theme-color"
+      content="<%= THEME_COLOR %>"
+      data-theme-color
+      data-theme-color-light="<%= THEME_COLOR_LIGHT %>"
+      data-theme-color-dark="<%= THEME_COLOR_DARK %>"
+    />
+    <script src="<%= THEME_SCRIPT_URL %>"></script>
     <link rel="stylesheet" href="./theme.css" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="vue-screenfull" />
@@ -56,26 +63,6 @@
         ]
       }
     </script>
-    <script>
-      (() => {
-        try {
-          const key = "vue-screenfull-theme";
-          const value = localStorage.getItem(key) || "system";
-          const theme =
-            value === "system"
-              ? matchMedia("(prefers-color-scheme: dark)").matches
-                ? "dark"
-                : "light"
-              : value;
-          document.documentElement.dataset.theme =
-            theme === "dark" ? "dark" : "light";
-          document.documentElement.style.colorScheme =
-            document.documentElement.dataset.theme;
-          localStorage.setItem("tsd-theme", value === "system" ? "os" : value);
-        } catch {}
-      })();
-    </script>
-    <script src="./theme.js" defer></script>
     <style>
       .hero {
         padding: clamp(4rem, 10vw, 7.5rem) 0 4rem;
@@ -554,7 +541,7 @@ const { isEnabled, isFullscreen, error, toggle } =
               operating system, embedding policy, and WebView host.
             </p>
             <a
-              href="https://github.com/chengchuu/vue-screenfull/blob/main/MANUAL_TESTING.md"
+              href="https://github.com/chengchuu/vue-screenfull/blob/main/guides/MANUAL_TESTING.md"
               >Review browser and platform testing guidance</a
             >
           </article>

@@ -27,6 +27,7 @@ const {
   SITE_URL,
   BACKGROUND_COLOR,
   THEME_COLOR,
+  THEME_CONFIG,
 } = require("./site-config");
 
 const root = path.resolve(__dirname, "..");
@@ -80,8 +81,6 @@ function transformApiHtml(html, relativeFile) {
   const assetPrefix = "../".repeat(
     relativeFile.replaceAll(path.sep, "/").split("/").length,
   );
-  const themeInitializer =
-    '(()=>{try{const k="vue-screenfull-theme",v=localStorage.getItem(k)||"system",t=v==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):v;document.documentElement.dataset.theme=t==="dark"?"dark":"light";document.documentElement.style.colorScheme=document.documentElement.dataset.theme;localStorage.setItem("tsd-theme",v==="system"?"os":v)}catch{}})();';
   const structuredData = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "TechArticle",
@@ -105,7 +104,8 @@ function transformApiHtml(html, relativeFile) {
     `<link rel="canonical" href="${url}"/>`,
     `<link rel="icon" href="${FAVICON_URL}" type="image/png"/>`,
     `<link rel="manifest" href="${MANIFEST_URL}"/>`,
-    `<meta name="theme-color" content="${THEME_COLOR}"/>`,
+    `<meta name="theme-color" content="${THEME_COLOR}" data-theme-color data-theme-color-light="${THEME_CONFIG.colorLight}" data-theme-color-dark="${THEME_CONFIG.colorDark}"/>`,
+    `<script src="${assetPrefix}assets/theme.js"></script>`,
     `<link rel="stylesheet" href="${assetPrefix}theme.css"/>`,
     '<meta property="og:type" content="website"/>',
     '<meta property="og:site_name" content="vue-screenfull"/>',
@@ -116,8 +116,6 @@ function transformApiHtml(html, relativeFile) {
     `<meta name="twitter:title" content="${escapeAttribute(title)}"/>`,
     `<meta name="twitter:description" content="${escapeAttribute(description)}"/>`,
     `<script type="application/ld+json">${structuredData}</script>`,
-    `<script>${themeInitializer}</script>`,
-    `<script src="${assetPrefix}theme.js" defer></script>`,
     `<script src="${assetPrefix}assets/pwa.js" defer></script>`,
     "<!-- vue-screenfull-seo:end -->",
   ].join("")}`;
@@ -216,7 +214,7 @@ async function buildPages() {
     path.join(site, "robots.txt"),
     path.join(site, "sitemap.xml"),
     path.join(site, "theme.css"),
-    path.join(site, "theme.js"),
+    path.join(root, "dist-dev", "assets", "theme.js"),
     ...[FAVICON_FILE, ...PWA_ICONS.map(({ file }) => file)].map((file) =>
       path.join(root, "images", file),
     ),
@@ -238,7 +236,6 @@ async function buildPages() {
     "robots.txt",
     "sitemap.xml",
     "theme.css",
-    "theme.js",
     "offline.html",
   ]) {
     cpSync(path.join(site, name), path.join(docs, name));
