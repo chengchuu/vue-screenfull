@@ -13,7 +13,7 @@ import type {
   ScreenfullResult,
   ScreenfullState,
   ScreenfullStatus,
-} from "../typing";
+} from "./typing";
 
 const success = (
   mode: "native" | "fallback",

@@ -2,7 +2,7 @@ import type {
   ScreenfullFallbackContext,
   ScreenfullFallbackHandler,
   ScreenfullOptions,
-} from "../typing";
+} from "./typing";
 
 interface PropertySnapshot {
   value: string;
