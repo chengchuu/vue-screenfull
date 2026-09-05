@@ -25,16 +25,23 @@ function matches(html, expression) {
   return [...html.matchAll(expression)];
 }
 
+function attributes(tag) {
+  return Object.fromEntries(
+    matches(
+      tag,
+      /([:\w-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g,
+    ).map((item) => [
+      item[1].toLowerCase(),
+      item[2] ?? item[3] ?? item[4] ?? "",
+    ]),
+  );
+}
+
 function attribute(html, tag, name, value) {
   const tags = matches(html, new RegExp(`<${tag}\\b[^>]*>`, "gi"));
   for (const match of tags) {
-    const attributes = Object.fromEntries(
-      matches(match[0], /([:\w-]+)=["']([^"']*)["']/g).map((item) => [
-        item[1].toLowerCase(),
-        item[2],
-      ]),
-    );
-    if (attributes[name] === value) return attributes;
+    const values = attributes(match[0]);
+    if (values[name] === value) return values;
   }
   return null;
 }
@@ -82,16 +89,94 @@ function validateJsonLd(label, html, expectedUrl) {
   }
 }
 
+function validateThemeToggles(label, html, expectedCount) {
+  const buttons = matches(
+    html,
+    /<button\b[^>]*data-theme-toggle[^>]*>[\s\S]*?<\/button>/gi,
+  );
+  if (buttons.length !== expectedCount) {
+    fail(
+      `${label}: expected ${expectedCount} project theme button(s), found ${buttons.length}`,
+    );
+  }
+
+  for (const button of buttons) {
+    const buttonAttributes = attributes(button[0].match(/<button\b[^>]*>/i)[0]);
+    if (buttonAttributes.type !== "button")
+      fail(`${label}: theme buttons must use type=button`);
+    if (!buttonAttributes.class?.split(/\s+/).includes("theme-toggle"))
+      fail(`${label}: theme buttons must use the theme-toggle class`);
+    if (
+      buttonAttributes["aria-label"] !==
+      "Current theme: Light. Switch to dark theme."
+    )
+      fail(`${label}: theme button has an invalid initial accessible label`);
+    if (Object.hasOwn(buttonAttributes, "aria-pressed"))
+      fail(`${label}: theme buttons must not use aria-pressed`);
+
+    const icons = matches(button[0], /<svg\b[^>]*>/gi).map((match) =>
+      attributes(match[0]),
+    );
+    for (const theme of ["light", "dark"]) {
+      const matchingIcons = icons.filter(
+        (icon) => icon["data-theme-icon"] === theme,
+      );
+      if (matchingIcons.length !== 1) {
+        fail(`${label}: expected one ${theme} icon per theme button`);
+        continue;
+      }
+      const icon = matchingIcons[0];
+      if (icon["aria-hidden"] !== "true" || icon.focusable !== "false")
+        fail(`${label}: ${theme} theme icons must be decorative`);
+      if (icon.width !== "16" || icon.height !== "16")
+        fail(`${label}: ${theme} theme icons must be 16 by 16 pixels`);
+      if (theme === "light" && Object.hasOwn(icon, "hidden"))
+        fail(`${label}: initial light theme icons must be visible`);
+      if (theme === "dark" && !Object.hasOwn(icon, "hidden"))
+        fail(`${label}: initial dark theme icons must be hidden`);
+    }
+  }
+
+  if (/<select\b[^>]*data-theme-select/i.test(html))
+    fail(`${label}: obsolete project theme selector is present`);
+}
+
+function validateTypeDocThemeSelector(label, html) {
+  const selectors = matches(
+    html,
+    /<select\b[^>]*id=["']tsd-theme["'][^>]*>([\s\S]*?)<\/select>/gi,
+  );
+  if (selectors.length !== 1) {
+    fail(`${label}: expected exactly one native TypeDoc theme selector`);
+    return;
+  }
+  const options = matches(
+    selectors[0][1],
+    /<option\b[^>]*value=["']([^"']+)["'][^>]*>([\s\S]*?)<\/option>/gi,
+  ).map((match) => [match[1], visibleText(match[2])]);
+  if (
+    JSON.stringify(options) !==
+    JSON.stringify([
+      ["os", "OS"],
+      ["light", "Light"],
+      ["dark", "Dark"],
+    ])
+  )
+    fail(`${label}: native TypeDoc theme options must remain OS, Light, Dark`);
+}
+
 function validatePage({
   label,
   file,
   canonical,
   requiredLinks,
+  requiredIds,
   requireFavicon = false,
   expectedTitle,
   expectedDescription,
   expectedThemeHref,
   expectedThemeScript,
+  expectedThemeButtons,
   requireNavigationToggle = false,
 }) {
   if (!existsSync(file)) {
@@ -149,6 +234,15 @@ function validatePage({
     if (!attribute(html, "a", "href", href))
       fail(`${label}: missing crawlable link to ${href}`);
   }
+  const ids = new Set(
+    matches(html, /<[a-z][^>]*>/gi).flatMap((match) => {
+      const values = attributes(match[0]);
+      return Object.hasOwn(values, "id") ? [values.id] : [];
+    }),
+  );
+  for (const id of requiredIds) {
+    if (!ids.has(id)) fail(`${label}: missing fragment target #${id}`);
+  }
   if (requireFavicon && !attribute(html, "link", "rel", "icon"))
     fail(`${label}: missing favicon`);
   if (!attribute(html, "link", "href", expectedThemeHref))
@@ -161,11 +255,16 @@ function validatePage({
     themeColor?.["data-theme-color-dark"] !== THEME_CONFIG.colorDark
   )
     fail(`${label}: theme-color metadata is missing resolved theme colors`);
-  if (!/<select\b[^>]*data-theme-select/.test(html))
-    fail(`${label}: missing accessible theme selector`);
+  validateThemeToggles(label, html, expectedThemeButtons);
   if (
     requireNavigationToggle &&
-    !/<button\b[^>]*aria-expanded="false"[^>]*data-nav-toggle/.test(html)
+    !matches(html, /<button\b[^>]*>/gi).some((match) => {
+      const values = attributes(match[0]);
+      return (
+        values["aria-expanded"] === "false" &&
+        Object.hasOwn(values, "data-nav-toggle")
+      );
+    })
   )
     fail(`${label}: missing collapsed mobile navigation control`);
   return {
@@ -219,6 +318,8 @@ function validateApiPages() {
       themeColor?.["data-theme-color-dark"] !== THEME_CONFIG.colorDark
     )
       fail(`API ${relative}: missing resolved theme-color metadata`);
+    validateThemeToggles(`API ${relative}`, html, 1);
+    validateTypeDocThemeSelector(`API ${relative}`, html);
     const h1s = matches(html, /<h1\b[^>]*>([\s\S]*?)<\/h1>/gi);
     if (h1s.length !== 1 || !visibleText(h1s[0][1]))
       fail(`API ${relative}: expected exactly one non-empty h1`);
@@ -285,24 +386,28 @@ function validateSite() {
       label: "Root page",
       file: path.join(docs, "index.html"),
       canonical: SITE_URL,
-      requiredLinks: ["./api/", "./playground/"],
+      requiredLinks: ["./", "./playground/", "#install", "#usage", "./api/"],
+      requiredIds: ["install", "usage"],
       requireFavicon: true,
       expectedTitle: ROOT_TITLE,
       expectedDescription: ROOT_DESCRIPTION,
       expectedThemeHref: "./theme.css",
       expectedThemeScript: "./assets/theme.js",
+      expectedThemeButtons: 2,
       requireNavigationToggle: true,
     }),
     validatePage({
       label: "Playground",
       file: path.join(docs, "playground", "index.html"),
       canonical: PLAYGROUND_URL,
-      requiredLinks: ["../", "../api/"],
+      requiredLinks: ["../", "./", "../#install", "../#usage", "../api/"],
+      requiredIds: [],
       requireFavicon: true,
       expectedTitle: PLAYGROUND_TITLE,
       expectedDescription: PLAYGROUND_DESCRIPTION,
       expectedThemeHref: "../theme.css",
       expectedThemeScript: "../assets/theme.js",
+      expectedThemeButtons: 1,
       requireNavigationToggle: true,
     }),
     validatePage({
@@ -310,11 +415,13 @@ function validateSite() {
       file: path.join(docs, "api", "index.html"),
       canonical: API_URL,
       requiredLinks: [SITE_URL],
+      requiredIds: [],
       requireFavicon: true,
       expectedTitle: API_TITLE,
       expectedDescription: API_DESCRIPTION,
       expectedThemeHref: "../theme.css",
       expectedThemeScript: "../assets/theme.js",
+      expectedThemeButtons: 1,
     }),
   ].filter(Boolean);
   const titles = pages.map((page) => page.title);

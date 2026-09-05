@@ -8,20 +8,12 @@
 [license-image]: https://img.shields.io/npm/l/vue-screenfull.svg
 [license-url]: https://github.com/chengchuu/vue-screenfull/blob/main/LICENSE
 
-Reactive, strongly typed, and SSR-safe fullscreen utilities for Vue 3, with an optional CSS
-pseudo-fullscreen fallback.
+`vue-screenfull` provides reactive, strongly typed fullscreen controls for Vue 3, with SSR-safe
+imports and an optional CSS fallback when native element fullscreen is unavailable.
 
 - [Project website](https://chengchuu.github.io/vue-screenfull/)
 - [Live playground](https://chengchuu.github.io/vue-screenfull/playground/)
 - [API documentation](https://chengchuu.github.io/vue-screenfull/api/)
-
-## Features
-
-- Reactive Composition API state with automatic scope cleanup.
-- Standard, WebKit, Mozilla, and Microsoft-prefixed API detection.
-- Vue template refs, component refs, elements, and safe CSS selectors.
-- Structured results and actionable errors instead of swallowed rejections.
-- Renderless component, directive, optional plugin, and framework-neutral controller.
 
 ## Installation
 
@@ -29,17 +21,18 @@ pseudo-fullscreen fallback.
 npm install vue-screenfull
 ```
 
-`lib/vue-screenfull.min.js` exposes `VUE_SCREENFULL` and requires the global `Vue`. Although Vue is
-an optional peer dependency, package-root imports still require Vue 3 at runtime.
+`vue-screenfull` provides the Vue composables, component, directive, and plugin, and requires Vue 3
+at runtime. Vue remains an optional peer dependency so `vue-screenfull/browser` can run without it.
+The browser IIFE, `lib/vue-screenfull.min.js`, exposes `VUE_SCREENFULL` and expects a global `Vue`.
 
 ## Basic Usage
 
 ```vue
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { ref } from "vue";
 import { useScreenfull } from "vue-screenfull";
 
-const target = useTemplateRef<HTMLElement>("target");
+const target = ref<HTMLElement | null>(null);
 const { isEnabled, isFullscreen, error, toggle } = useScreenfull();
 </script>
 
@@ -61,9 +54,10 @@ require transient user activation and can reject a request even when `isEnabled.
 
 ```vue
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { ref } from "vue";
 import { useScreenfullTarget } from "vue-screenfull";
-const panel = useTemplateRef<HTMLElement>("panel");
+
+const panel = ref<HTMLElement | null>(null);
 const { request, isFullscreen } = useScreenfullTarget(panel);
 </script>
 <template>
@@ -85,8 +79,10 @@ const result = await toggle(target, { navigationUI: "hide" });
 if (!result.ok) console.warn(result.error.code, result.error.suggestion);
 ```
 
-For image content, pass the image template ref. For a video, pass an `HTMLVideoElement` ref.
-Some mobile browsers offer video-only fullscreen independently of arbitrary-element fullscreen.
+For image content, pass the image template ref. An `HTMLVideoElement` is also a valid target. If a
+video presentation needs custom controls, target a wrapper that contains both the video and those
+controls so they remain available in native or fallback fullscreen. Some mobile browsers offer
+browser-managed video fullscreen independently of arbitrary-element fullscreen.
 
 ## Exit Fullscreen
 
@@ -94,9 +90,9 @@ Some mobile browsers offer video-only fullscreen independently of arbitrary-elem
 <button type="button" @click="exit">Exit fullscreen</button>
 ```
 
-Always include a visible exit button, particularly when fallback is enabled. Escape often exits
-fullscreen, but its browser behavior cannot be overridden reliably. Native change events reflect
-exits initiated through the browser UI.
+Keep a visible exit button inside the fullscreen target, particularly when fallback is enabled.
+Escape often exits fullscreen, but its browser behavior cannot be overridden reliably. Native
+change events reflect exits initiated through the browser UI.
 
 ## Check Support
 
@@ -121,8 +117,8 @@ if (!result.ok) {
 }
 ```
 
-Errors distinguish unsupported/SSR environments, invalid or detached targets, user activation,
-permissions and iframe policy, pending transitions, native request/exit failures, and fallback
+Errors distinguish unsupported or SSR environments, invalid or detached targets, user activation,
+permissions, iframe policy, pending transitions, native request or exit failures, and fallback
 failures. `error` keeps the last error until `clearError()` is called.
 
 ## CSS Fallback
@@ -160,15 +156,17 @@ cleanup.
   v-slot="screenfull"
   @error="report"
 >
-  <button type="button" @click="screenfull.toggle()">
-    {{ screenfull.isFullscreen ? "Exit" : "Open article" }}
-  </button>
-  <button v-if="screenfull.isFullscreen" type="button" @click="screenfull.exit">Exit</button>
+  <article id="article">
+    <button type="button" @click="screenfull.toggle()">
+      {{ screenfull.isFullscreen.value ? "Exit" : "Open article" }}
+    </button>
+  </article>
 </Screenfull>
 ```
 
 The renderless component emits `change`, `enter`, `exit`, `error`, and `fallback`. Its default slot
-receives all composable refs and actions without imposing a visual system.
+receives all composable refs and actions without imposing a visual system. Because `screenfull` is a
+scoped-slot object, access its nested refs with `.value`.
 
 ## Directive Usage
 
@@ -466,8 +464,6 @@ an active session during an update. The generated worker includes a final-artifa
 so deployable website changes can be detected without precaching unversioned bundles.
 
 ## Development
-
-Node.js 22 is used in CI.
 
 ```bash
 npm install

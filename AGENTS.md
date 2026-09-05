@@ -182,8 +182,8 @@ with strict checking in a clean consumer, not only the repository's `skipLibChec
 - Do not introduce module-load browser side effects that fail in Node-based tests or bundlers.
 
 Rollup owns production output. Preserve CJS, ESM, IIFE, source maps, declaration generation, the
-license banner, and minification controlled by `SCRIPTS_NPM_PACKAGE_DEBUG`. Babel helpers are
-bundled, and generated JavaScript must not acquire undeclared runtime helper imports.
+license banner, and minification. Babel helpers are bundled, and generated JavaScript must not
+acquire undeclared runtime helper imports.
 
 Keep `vue` and `mazey` external in CJS, ESM, and declaration outputs. The IIFE-specific Mazey
 resolver intentionally bundles Mazey from its declared module entry while leaving Vue external as
@@ -294,10 +294,12 @@ The public pages share `site/theme.css` and the Webpack entry `site/theme-entry.
 `site/theme.ts` to the generated `assets/theme.js`. Theme preference values are `system`, `light`,
 and `dark`, stored under `vue-screenfull-theme`; Mazey resolves and persists the preference while
 project code owns DOM attributes, controls, theme-color metadata, TypeDoc synchronization, and
-navigation behavior. Keep the synchronous head-loaded theme bundle and its metadata synchronized
-across the root template, playground template, and API transformation so it can apply the initial
-theme before CSS paints. Mobile navigation must remain progressively enhanced, keyboard operable,
-and usable without hiding links when JavaScript fails.
+navigation behavior. Project-owned controls are synchronized two-state light/dark buttons, while
+TypeDoc retains its native three-state `OS`/`Light`/`Dark` Settings selector. Keep the synchronous
+head-loaded theme bundle and its metadata synchronized across the root template, playground
+template, and API transformation so it can apply the initial theme before CSS paints. Mobile
+navigation must remain progressively enhanced, keyboard operable, and usable without hiding links
+when JavaScript fails.
 
 README changes to browser support must use runtime feature-detection language and distinguish tested
 platforms from documented targets. Do not claim that CSS fallback hides browser/OS UI or that

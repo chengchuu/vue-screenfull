@@ -23,11 +23,16 @@ const {
   PWA_ICONS,
   PWA_NAME,
   PWA_SHORT_NAME,
+  PLAYGROUND_DESCRIPTION,
+  PLAYGROUND_TITLE,
+  PLAYGROUND_URL,
   SITE_BASE,
   SITE_URL,
   BACKGROUND_COLOR,
   THEME_COLOR,
   THEME_CONFIG,
+  ROOT_DESCRIPTION,
+  ROOT_TITLE,
 } = require("./site-config");
 
 const root = path.resolve(__dirname, "..");
@@ -43,11 +48,77 @@ function escapeAttribute(value) {
     .replaceAll(">", "&gt;");
 }
 
+function themeToggleHtml() {
+  return '<button class="theme-toggle" type="button" data-theme-toggle aria-label="Current theme: Light. Switch to dark theme."><svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" focusable="false" data-theme-icon="light"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg><svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" focusable="false" data-theme-icon="dark" hidden><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/><path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/></svg></button>';
+}
+
 function apiPageUrl(relativeFile) {
   const route = relativeFile
     .replaceAll(path.sep, "/")
     .replace(/index\.html$/, "");
   return new URL(route, API_URL).href;
+}
+
+function publicPageStructuredData(title, description, url) {
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: title,
+    description,
+    url,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "vue-screenfull",
+      url: SITE_URL,
+    },
+    about: {
+      "@type": "SoftwareSourceCode",
+      name: "vue-screenfull",
+      codeRepository: GITHUB_URL,
+    },
+  });
+}
+
+function transformPublicHtml(html, { title, description, url, assetPrefix }) {
+  const metadata = [
+    `<title>${escapeAttribute(title)}</title>`,
+    `<meta name="description" content="${escapeAttribute(description)}"/>`,
+    `<link rel="canonical" href="${url}"/>`,
+    `<link rel="icon" href="${assetPrefix}images/${FAVICON_FILE}" type="image/png"/>`,
+    `<link rel="manifest" href="${MANIFEST_URL}"/>`,
+    `<meta name="theme-color" content="${THEME_COLOR}" data-theme-color data-theme-color-light="${THEME_CONFIG.colorLight}" data-theme-color-dark="${THEME_CONFIG.colorDark}"/>`,
+    `<script src="${assetPrefix}assets/theme.js"></script>`,
+    `<link rel="stylesheet" href="${assetPrefix}theme.css"/>`,
+    '<meta property="og:type" content="website"/>',
+    '<meta property="og:site_name" content="vue-screenfull"/>',
+    `<meta property="og:title" content="${escapeAttribute(title)}"/>`,
+    `<meta property="og:description" content="${escapeAttribute(description)}"/>`,
+    `<meta property="og:url" content="${url}"/>`,
+    '<meta name="twitter:card" content="summary"/>',
+    `<meta name="twitter:title" content="${escapeAttribute(title)}"/>`,
+    `<meta name="twitter:description" content="${escapeAttribute(description)}"/>`,
+    `<script type="application/ld+json">${publicPageStructuredData(title, description, url)}</script>`,
+  ].join("");
+
+  return html
+    .replace(/<title>[\s\S]*?<\/title>/i, "")
+    .replace(/<meta name="description"[^>]*>/i, "")
+    .replace(/<link rel="canonical"[^>]*>/i, "")
+    .replace(/<link rel="icon"[^>]*>/i, "")
+    .replace(/<link rel="manifest"[^>]*>/i, "")
+    .replace(/<meta name="theme-color"[^>]*>/i, "")
+    .replace(
+      /<script\b[^>]*src=["'][^"']*assets\/theme\.js["'][^>]*><\/script>/i,
+      "",
+    )
+    .replace(/<link rel="stylesheet"[^>]*theme\.css[^>]*>/i, "")
+    .replace(/<meta property="og:[^"]+"[^>]*>/gi, "")
+    .replace(/<meta name="twitter:[^"]+"[^>]*>/gi, "")
+    .replace(
+      /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi,
+      "",
+    )
+    .replace("</head>", `${metadata}</head>`);
 }
 
 function transformApiHtml(html, relativeFile) {
@@ -129,13 +200,8 @@ function transformApiHtml(html, relativeFile) {
     .replace("</head>", `${metadata}</head>`)
     .replace(
       '<div class="tsd-toolbar-contents container">',
-      `<div class="tsd-toolbar-contents container"><nav class="vue-screenfull-project-links" aria-label="Project links"><a href="${SITE_URL}">Project home</a><a href="${API_URL}">API overview</a><a href="${NPM_URL}">npm</a><label class="theme-control"><span>Theme</span><select data-theme-select aria-label="Choose API documentation theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></nav>`,
+      `<div class="tsd-toolbar-contents container"><nav class="vue-screenfull-project-links" aria-label="Project links"><a href="${SITE_URL}">Project home</a><a href="${API_URL}">API overview</a><a href="${NPM_URL}">npm</a>${themeToggleHtml()}</nav>`,
     );
-
-  output = output.replace(
-    /<div class="tsd-theme-toggle">[\s\S]*?<\/div>/,
-    '<div class="tsd-theme-toggle"><label class="settings-label" for="vue-screenfull-footer-theme">Theme</label><select id="vue-screenfull-footer-theme" data-theme-select aria-label="Choose API documentation theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></div>',
-  );
 
   if (isIndex) {
     output = output.replace(
@@ -226,6 +292,27 @@ async function buildPages() {
       rmSync(path.join(docs, name), { recursive: true, force: true });
   }
   cpSync(path.join(root, "dist-dev"), docs, { recursive: true });
+  writeFileSync(
+    path.join(docs, "index.html"),
+    transformPublicHtml(readFileSync(path.join(docs, "index.html"), "utf8"), {
+      title: ROOT_TITLE,
+      description: ROOT_DESCRIPTION,
+      url: SITE_URL,
+      assetPrefix: "./",
+    }),
+  );
+  writeFileSync(
+    path.join(docs, "playground", "index.html"),
+    transformPublicHtml(
+      readFileSync(path.join(docs, "playground", "index.html"), "utf8"),
+      {
+        title: PLAYGROUND_TITLE,
+        description: PLAYGROUND_DESCRIPTION,
+        url: PLAYGROUND_URL,
+        assetPrefix: "../",
+      },
+    ),
+  );
   rmSync(path.join(docs, "assets", "service-worker-source.js"), {
     force: true,
   });
@@ -286,5 +373,6 @@ module.exports = {
   buildPages,
   createManifest,
   fingerprintPages,
+  transformPublicHtml,
   transformApiHtml,
 };
