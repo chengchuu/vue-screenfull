@@ -182,8 +182,8 @@ with strict checking in a clean consumer, not only the repository's `skipLibChec
 - Do not introduce module-load browser side effects that fail in Node-based tests or bundlers.
 
 Rollup owns production output. Preserve CJS, ESM, IIFE, source maps, declaration generation, the
-license banner, and minification controlled by `SCRIPTS_NPM_PACKAGE_DEBUG`. Babel helpers are
-bundled, and generated JavaScript must not acquire undeclared runtime helper imports.
+license banner, and minification. Babel helpers are bundled, and generated JavaScript must not
+acquire undeclared runtime helper imports.
 
 Keep `vue` and `mazey` external in CJS, ESM, and declaration outputs. The IIFE-specific Mazey
 resolver intentionally bundles Mazey from its declared module entry while leaving Vue external as
@@ -284,8 +284,8 @@ Graph data, JSON-LD, `robots.txt`, and `sitemap.xml` synchronized. `npm run docs
 The website PWA is scoped to `/vue-screenfull/`. Keep all Workbox packages on the same v7 release
 and in `devDependencies`. Webpack bundles the TypeScript worker and `injectManifest` runs only after
 the homepage, playground, and TypeDoc tree are assembled. Documents, scripts, and styles are
-bounded network-first; local images and fonts are bounded cache-first. Do not unconditionally call
-`skipWaiting()`: page-side `workbox-window` controls send `SKIP_WAITING` only after user approval.
+bounded network-first; local images and fonts are bounded cache-first. Do not call `skipWaiting()`
+or reload open pages for updates; updated workers activate through the browser's normal lifecycle.
 A generated `site-version.json` fingerprints deployable Pages content so meaningful site changes
 produce a waiting worker without precaching unversioned bundles. Normal `npm run dev` must keep
 production worker registration disabled.

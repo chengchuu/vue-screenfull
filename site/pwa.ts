@@ -3,7 +3,7 @@ import {
   registerServiceWorker,
   shouldRegisterServiceWorker,
   type ServiceWorkerConfig,
-} from "./pwa/updates";
+} from "./pwa/registration";
 
 declare const __SITE_PWA_CONFIG__: ServiceWorkerConfig;
 
@@ -25,7 +25,9 @@ export function initializeSitePwa(
     navigatorRef,
     config.appName,
   );
-  if (!shouldRegisterServiceWorker(config, windowRef.location, navigatorRef))
+  if (
+    !shouldRegisterServiceWorker(config, documentRef, windowRef, navigatorRef)
+  )
     return;
 
   const schedule = () => {

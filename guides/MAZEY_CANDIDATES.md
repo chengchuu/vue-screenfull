@@ -116,19 +116,16 @@ so Mazey's browser bundle remains import-safe.
   function getPngDimensions(data: Uint8Array): ImageDimensions;
   ```
 
-## Overlaps not recommended for extraction
+## Existing overlaps and adoption boundaries
 
-- `resolveScreenfullTarget` now delegates generic target resolution to Mazey's
-  `resolveElementTarget`; keep only the Vue unwrap adapter and fullscreen-specific public boundary
-  locally.
-- `isStandaloneMode` overlaps Mazey's existing `isStandalonePWA`; reuse the public utility instead.
-- `shouldRegisterServiceWorker` overlaps `isSafePWAEnv`; keep only project-specific enablement and
-  worker-scope policy locally.
-- The duplicated `announce` functions in `site/pwa/install.ts` and `site/pwa/updates.ts` should be
-  consolidated locally, but a `querySelectorAll` plus `textContent` loop is too small to justify a
-  public cross-project API.
-- Theme DOM synchronization should remain project-owned; Mazey already supplies
-  `resolveThemePreference`, `setThemePreference`, and `listenMediaQueryChanges` without imposing DOM
-  policy.
-- Fullscreen API detection, error taxonomy, and fallback orchestration belong in
-  `vue-screenfull`, whose public API already exposes the domain-specific capabilities.
+| Local functionality                  | Existing Mazey API                                                        | Adoption status  | Project boundary                                                             |
+| ------------------------------------ | ------------------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------- |
+| Generic target resolution            | `resolveElementTarget`                                                    | Already adopted  | Keep the Vue unwrap adapter and fullscreen-specific default locally.         |
+| Theme preference and media listeners | `resolveThemePreference`, `setThemePreference`, `listenMediaQueryChanges` | Already adopted  | Keep DOM attributes, controls, metadata, and TypeDoc synchronization local.  |
+| Standalone presentation detection    | `isStandalonePWA`                                                         | Newly adopted    | Inject the current browser objects and keep install-control behavior local.  |
+| Safe PWA environment checks          | `isSafePWAEnv`                                                            | Newly adopted    | Keep project enablement, Workbox construction, worker URL, and scope local.  |
+| PWA status announcements             | None                                                                      | Local helper     | Share the small status-region update without adding a public Mazey API.      |
+| Fullscreen behavior                  | None                                                                      | Project-specific | Keep API detection, error taxonomy, transitions, and fallback orchestration. |
+
+Workbox-specific waiting, activation, cross-tab update, and reload behavior remains project-owned;
+it does not match Mazey's native service-worker update watcher closely enough for direct reuse.

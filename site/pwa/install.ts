@@ -1,3 +1,6 @@
+import { isStandalonePWA, listenMediaQueryChanges } from "mazey";
+import { announcePwaStatus } from "./status";
+
 interface InstallChoice {
   outcome: "accepted" | "dismissed";
 }
@@ -9,22 +12,6 @@ interface BeforeInstallPromptEvent extends Event {
 
 interface NavigatorWithStandalone extends Navigator {
   standalone?: boolean;
-}
-
-export function isStandaloneMode(
-  windowRef: Window,
-  navigatorRef: NavigatorWithStandalone,
-): boolean {
-  return (
-    windowRef.matchMedia("(display-mode: standalone)").matches ||
-    navigatorRef.standalone === true
-  );
-}
-
-function announce(documentRef: Document, message: string): void {
-  documentRef
-    .querySelectorAll<HTMLElement>("[data-pwa-status]")
-    .forEach((region) => (region.textContent = message));
 }
 
 export function initializeInstallExperience(
@@ -40,6 +27,13 @@ export function initializeInstallExperience(
     documentRef.querySelectorAll<HTMLElement>("[data-pwa-install-help]"),
   );
   const displayMode = windowRef.matchMedia("(display-mode: standalone)");
+  const standaloneOptions = {
+    environment: {
+      window: windowRef,
+      navigator: navigatorRef,
+      document: documentRef,
+    },
+  };
   let deferredPrompt: BeforeInstallPromptEvent | null = null;
 
   const hideControls = () => {
@@ -58,7 +52,7 @@ export function initializeInstallExperience(
     help.forEach((element) => (element.hidden = true));
   };
   const handlePromptAvailable = (event: Event) => {
-    if (!buttons.length || isStandaloneMode(windowRef, navigatorRef)) return;
+    if (!buttons.length || isStandalonePWA(standaloneOptions)) return;
     const promptEvent = event as BeforeInstallPromptEvent;
     promptEvent.preventDefault();
     deferredPrompt = promptEvent;
@@ -79,14 +73,14 @@ export function initializeInstallExperience(
     try {
       await promptEvent.prompt();
       const choice = await promptEvent.userChoice;
-      announce(
+      announcePwaStatus(
         documentRef,
         choice.outcome === "accepted"
           ? "The app installation was accepted."
           : "Installation was dismissed. You can use the browser menu later.",
       );
     } catch {
-      announce(
+      announcePwaStatus(
         documentRef,
         "The install prompt could not open. Use the browser menu instead.",
       );
@@ -96,18 +90,21 @@ export function initializeInstallExperience(
   };
   const handleInstalled = () => {
     showInstalledState();
-    announce(documentRef, `${appName} was installed.`);
+    announcePwaStatus(documentRef, `${appName} was installed.`);
   };
   const handleDisplayMode = () => {
-    if (isStandaloneMode(windowRef, navigatorRef)) showInstalledState();
+    if (isStandalonePWA(standaloneOptions)) showInstalledState();
   };
 
   hideControls();
-  if (isStandaloneMode(windowRef, navigatorRef)) showInstalledState();
+  if (isStandalonePWA(standaloneOptions)) showInstalledState();
   buttons.forEach((button) => button.addEventListener("click", handleInstall));
   windowRef.addEventListener("beforeinstallprompt", handlePromptAvailable);
   windowRef.addEventListener("appinstalled", handleInstalled);
-  displayMode.addEventListener?.("change", handleDisplayMode);
+  const removeDisplayModeListener = listenMediaQueryChanges(
+    displayMode,
+    handleDisplayMode,
+  );
 
   return () => {
     buttons.forEach((button) =>
@@ -115,6 +112,6 @@ export function initializeInstallExperience(
     );
     windowRef.removeEventListener("beforeinstallprompt", handlePromptAvailable);
     windowRef.removeEventListener("appinstalled", handleInstalled);
-    displayMode.removeEventListener?.("change", handleDisplayMode);
+    removeDisplayModeListener();
   };
 }

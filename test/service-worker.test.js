@@ -27,13 +27,13 @@ test("manifest identity, scope, icons, and maskable artwork are valid", () => {
   }
 });
 
-test("Workbox worker keeps activation explicit and routes only scoped GETs", () => {
+test("Workbox worker leaves activation to the browser and routes only scoped GETs", () => {
   const source = readFileSync(
     path.join(root, "site", "service-worker.ts"),
     "utf8",
   );
   expect(source).toContain(".__WB_MANIFEST)");
-  expect(source).toContain('event.data?.type === "SKIP_WAITING"');
+  expect(source).not.toMatch(/SKIP_WAITING|skipWaiting\s*\(/);
   expect(source).toContain('request.method === "GET"');
   expect(source).toContain("url.origin === worker.location.origin");
   expect(source).toContain("url.pathname.startsWith(__PWA_SCOPE__)");
@@ -42,7 +42,6 @@ test("Workbox worker keeps activation explicit and routes only scoped GETs", () 
   expect(source).toContain('request.destination === "script"');
   expect(source).toContain('request.destination === "style"');
   expect(source).toContain('cacheName: "vue-screenfull-static"');
-  expect(source.match(/skipWaiting\(\)/g)).toHaveLength(1);
 });
 
 test("the Pages fingerprint changes with deployable content only", () => {
