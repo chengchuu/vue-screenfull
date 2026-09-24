@@ -2,10 +2,9 @@
 
 const { initializeInstallExperience } = require("../site/pwa/install");
 const {
-  monitorWorkboxUpdates,
   registerServiceWorker,
   shouldRegisterServiceWorker,
-} = require("../site/pwa/updates");
+} = require("../site/pwa/registration");
 
 function installMatchMedia(matches = false) {
   const media = new EventTarget();
@@ -31,12 +30,12 @@ function renderControls() {
         <button data-pwa-install hidden disabled>Install app</button>
       </span>
     </section>
-    <aside data-pwa-update hidden><button data-pwa-update-now>Update now</button></aside>
     <p data-pwa-status></p>
   `;
 }
 
-class WorkboxFake extends EventTarget {
+class WorkboxFake {
+  addEventListener = jest.fn();
   messageSkipWaiting = jest.fn();
   register = jest.fn().mockResolvedValue({ scope: "/vue-screenfull/" });
 }
@@ -223,6 +222,8 @@ test("registration requires an enabled safe PWA environment", async () => {
     },
   );
   expect(workbox.register).toHaveBeenCalledTimes(1);
+  expect(workbox.addEventListener).not.toHaveBeenCalled();
+  expect(workbox.messageSkipWaiting).not.toHaveBeenCalled();
 });
 
 test("registration failure is announced without throwing", async () => {
@@ -261,73 +262,4 @@ test("registration failure is announced without throwing", async () => {
   );
   expect(consoleError).toHaveBeenCalledTimes(1);
   consoleError.mockRestore();
-});
-
-test("waiting updates reload once and only after explicit approval", () => {
-  renderControls();
-  const workbox = new WorkboxFake();
-  const reload = jest.fn();
-  const windowRef = { location: { reload }, sessionStorage };
-  const navigatorRef = { serviceWorker: { controller: {} } };
-  const cleanup = monitorWorkboxUpdates(
-    workbox,
-    document,
-    windowRef,
-    navigatorRef,
-    "vue-screenfull",
-  );
-
-  const waiting = new Event("waiting");
-  waiting.wasWaitingBeforeRegister = true;
-  workbox.dispatchEvent(waiting);
-  expect(document.querySelector("[data-pwa-update]").hidden).toBe(false);
-  workbox.dispatchEvent(new Event("controlling"));
-  expect(reload).not.toHaveBeenCalled();
-
-  document.querySelector("[data-pwa-update-now]").click();
-  expect(workbox.messageSkipWaiting).toHaveBeenCalledTimes(1);
-  expect(document.querySelector("[data-pwa-update-now]").disabled).toBe(true);
-  workbox.dispatchEvent(new Event("controlling"));
-  workbox.dispatchEvent(new Event("controlling"));
-  expect(reload).toHaveBeenCalledTimes(1);
-  cleanup();
-});
-
-test("a first install without an existing controller is not shown as an update", () => {
-  renderControls();
-  const workbox = new WorkboxFake();
-  const cleanup = monitorWorkboxUpdates(
-    workbox,
-    document,
-    { location: { reload: jest.fn() }, sessionStorage },
-    { serviceWorker: { controller: null } },
-    "vue-screenfull",
-  );
-  workbox.dispatchEvent(new Event("waiting"));
-  expect(document.querySelector("[data-pwa-update]").hidden).toBe(true);
-  workbox.dispatchEvent(new Event("controlling"));
-  expect(document.querySelector("[data-pwa-status]").textContent).toBe("");
-  cleanup();
-});
-
-test("an externally controlled update is announced without reloading", () => {
-  renderControls();
-  const workbox = new WorkboxFake();
-  const reload = jest.fn();
-  const cleanup = monitorWorkboxUpdates(
-    workbox,
-    document,
-    { location: { reload }, sessionStorage },
-    { serviceWorker: { controller: {} } },
-    "vue-screenfull",
-  );
-  const controlling = new Event("controlling");
-  controlling.isUpdate = true;
-  controlling.isExternal = true;
-  workbox.dispatchEvent(controlling);
-  expect(reload).not.toHaveBeenCalled();
-  expect(document.querySelector("[data-pwa-status]").textContent).toContain(
-    "another tab",
-  );
-  cleanup();
 });

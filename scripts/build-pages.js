@@ -128,7 +128,6 @@ function transformApiHtml(html, relativeFile) {
       "",
     )
     .replace(/<nav class="vue-screenfull-project-links"[\s\S]*?<\/nav>/g, "")
-    .replace(/<aside class="pwa-update"[\s\S]*?<\/aside>/g, "")
     .replace(/<p class="pwa-status"[\s\S]*?<\/p>/g, "");
   const isIndex = relativeFile === "index.html";
   const routeName = path.basename(relativeFile, ".html");
@@ -210,7 +209,7 @@ function transformApiHtml(html, relativeFile) {
     );
   }
   const pwaUi =
-    '<aside class="pwa-update" aria-label="Website update" data-pwa-update hidden><span>A new website version is available.</span><button type="button" data-pwa-update-now>Update now</button></aside><p class="pwa-status" role="status" aria-live="polite" data-pwa-status></p>';
+    '<p class="pwa-status" role="status" aria-live="polite" data-pwa-status></p>';
   return output.replace("</body>", `${pwaUi}</body>`);
 }
 

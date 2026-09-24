@@ -88,8 +88,15 @@ function validatePwa({ rootDir = root } = {}) {
       !html.includes(`data-theme-color-dark="${THEME_CONFIG.colorDark}"`)
     )
       failures.push(`${file} is missing resolved theme-color metadata`);
-    if (!html.includes("data-pwa-update-now"))
-      failures.push(`${file} is missing update controls`);
+    for (const forbidden of [
+      "data-pwa-update",
+      "data-pwa-update-now",
+      "pwa-update",
+      "site-pwa-update",
+    ]) {
+      if (html.includes(forbidden))
+        failures.push(`${file} contains removed update UI: ${forbidden}`);
+    }
     if (!html.includes("data-pwa-status"))
       failures.push(`${file} is missing a PWA live region`);
   }
@@ -99,14 +106,23 @@ function validatePwa({ rootDir = root } = {}) {
     const worker = readFileSync(workerFile, "utf8");
     if (worker.includes("self.__WB_MANIFEST"))
       failures.push("Workbox precache manifest was not injected");
-    if (!worker.includes("SKIP_WAITING"))
-      failures.push("Service worker lacks explicit activation messaging");
+    if (/SKIP_WAITING|skipWaiting\s*\(/.test(worker))
+      failures.push("Service worker contains forced update activation");
     if (!worker.includes("site-version.json"))
       failures.push("Service worker does not include the site version marker");
-    if ((worker.match(/\.skipWaiting\(\)/g) ?? []).length !== 1)
-      failures.push(
-        "Service worker must contain one explicit skip-waiting path",
-      );
+  }
+
+  for (const file of filesIn(docs).filter((entry) => entry.endsWith(".html"))) {
+    const html = readFileSync(file, "utf8");
+    for (const forbidden of [
+      "data-pwa-update",
+      "data-pwa-update-now",
+      "pwa-update",
+      "site-pwa-update",
+    ]) {
+      if (html.includes(forbidden))
+        failures.push(`${file} contains removed update UI: ${forbidden}`);
+    }
   }
 
   if (!existsSync(versionFile)) failures.push("Site version marker is missing");
