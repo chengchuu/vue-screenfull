@@ -284,8 +284,8 @@ Graph data, JSON-LD, `robots.txt`, and `sitemap.xml` synchronized. `npm run docs
 The website PWA is scoped to `/vue-screenfull/`. Keep all Workbox packages on the same v7 release
 and in `devDependencies`. Webpack bundles the TypeScript worker and `injectManifest` runs only after
 the homepage, playground, and TypeDoc tree are assembled. Documents, scripts, and styles are
-bounded network-first; local images and fonts are bounded cache-first. Do not unconditionally call
-`skipWaiting()`: page-side `workbox-window` controls send `SKIP_WAITING` only after user approval.
+bounded network-first; local images and fonts are bounded cache-first. Do not call `skipWaiting()`
+or reload open pages for updates; updated workers activate through the browser's normal lifecycle.
 A generated `site-version.json` fingerprints deployable Pages content so meaningful site changes
 produce a waiting worker without precaching unversioned bundles. Normal `npm run dev` must keep
 production worker registration disabled.
