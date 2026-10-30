@@ -25,7 +25,9 @@ export function initializeSitePwa(
     navigatorRef,
     config.appName,
   );
-  if (!shouldRegisterServiceWorker(config, windowRef.location, navigatorRef))
+  if (
+    !shouldRegisterServiceWorker(config, documentRef, windowRef, navigatorRef)
+  )
     return;
 
   const schedule = () => {

@@ -163,51 +163,50 @@
         border-radius: 0.65rem;
         background: var(--color-code-background);
       }
-      .video-target {
-        display: grid;
-        grid-template-rows: minmax(0, 1fr) auto;
-        gap: 0.75rem;
-        box-sizing: border-box;
+      .video-card {
+        display: flex;
+        flex-direction: column;
       }
-      .video-target__exit {
+      .video-card__header p {
+        margin-bottom: 1rem;
+      }
+      .video-card__media {
+        min-height: 0;
+      }
+      .video-card__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        margin-top: 0.75rem;
+      }
+      .video-card__exit {
+        display: none;
         min-height: 44px;
-        justify-self: start;
       }
-      .video-target.vue-screenfull-fallback {
+      .video-card.vue-screenfull-fallback {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
         gap: 1rem;
         padding: max(1rem, env(safe-area-inset-top))
           max(1rem, env(safe-area-inset-right))
           max(1rem, env(safe-area-inset-bottom))
           max(1rem, env(safe-area-inset-left));
       }
-      .video-target.vue-screenfull-fallback video {
+      .video-card.vue-screenfull-fallback video {
         height: 100%;
         min-height: 0;
         max-height: 100%;
         object-fit: contain;
       }
-      .video-target.vue-screenfull-fallback .video-target__exit {
-        justify-self: center;
+      .video-card.vue-screenfull-fallback .video-card__enter {
+        display: none;
       }
-      .video-target:fullscreen {
-        gap: 1rem;
-        padding: max(1rem, env(safe-area-inset-top))
-          max(1rem, env(safe-area-inset-right))
-          max(1rem, env(safe-area-inset-bottom))
-          max(1rem, env(safe-area-inset-left));
-        color: CanvasText;
-        background: Canvas;
+      .video-card.vue-screenfull-fallback .video-card__exit {
+        display: inline-flex;
       }
-      .video-target:fullscreen video {
-        height: 100%;
-        min-height: 0;
-        max-height: 100%;
-        object-fit: contain;
-      }
-      .video-target:fullscreen .video-target__exit {
-        justify-self: center;
-      }
-      .video-target:-webkit-full-screen {
+      .video-card:fullscreen {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
         gap: 1rem;
         padding: max(1rem, env(safe-area-inset-top))
           max(1rem, env(safe-area-inset-right))
@@ -216,14 +215,40 @@
         color: CanvasText;
         background: Canvas;
       }
-      .video-target:-webkit-full-screen video {
+      .video-card:fullscreen video {
         height: 100%;
         min-height: 0;
         max-height: 100%;
         object-fit: contain;
       }
-      .video-target:-webkit-full-screen .video-target__exit {
-        justify-self: center;
+      .video-card:fullscreen .video-card__enter {
+        display: none;
+      }
+      .video-card:fullscreen .video-card__exit {
+        display: inline-flex;
+      }
+      .video-card:-webkit-full-screen {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 1rem;
+        padding: max(1rem, env(safe-area-inset-top))
+          max(1rem, env(safe-area-inset-right))
+          max(1rem, env(safe-area-inset-bottom))
+          max(1rem, env(safe-area-inset-left));
+        color: CanvasText;
+        background: Canvas;
+      }
+      .video-card:-webkit-full-screen video {
+        height: 100%;
+        min-height: 0;
+        max-height: 100%;
+        object-fit: contain;
+      }
+      .video-card:-webkit-full-screen .video-card__enter {
+        display: none;
+      }
+      .video-card:-webkit-full-screen .video-card__exit {
+        display: inline-flex;
       }
       h2 {
         margin: 0.75rem 0;

@@ -32,7 +32,7 @@ permission. Confirm errors are visible, focus returns after library-driven exit,
 inline styles/body scroll, navigation and app switching do not leave stale state, and an accessible
 exit remains keyboard/touch reachable.
 
-## iPhone Chrome video-wrapper check
+## iPhone Chrome video-card check
 
 This check requires a physical iPhone; desktop emulation and jsdom do not reproduce WebKit's native
 video and arbitrary-element fullscreen behavior reliably.
@@ -43,10 +43,10 @@ video and arbitrary-element fullscreen behavior reliably.
    element**, and **Document fullscreen element** from Diagnostics.
 4. Confirm **Exit video fullscreen** remains visible and touch-accessible in portrait and landscape,
    then use it to exit.
-5. Confirm focus returns to **View video fullscreen**, the wrapper's fallback styles are removed, body
+5. Confirm focus returns to **View video fullscreen**, the card's fallback styles are removed, body
    scrolling is restored, and the page, element, and image examples still work.
 
-If the request reports `fallback`, the controller element should be the video wrapper and the document
+If the request reports `fallback`, the controller element should be the video card and the document
 fullscreen element should be `none`. If it reports `native`, record both element fields and investigate
 WebKit-specific behavior separately before changing the shared controller.
 

@@ -8,8 +8,8 @@ importers:
   .:
     dependencies:
       mazey:
-        specifier: 5.7.3
-        version: 5.7.3
+        specifier: 5.8.0
+        version: 5.8.0
     devDependencies:
       "@babel/core":
         specifier: ^7.29.7
@@ -5639,10 +5639,10 @@ packages:
       }
     engines: { node: ">= 0.4" }
 
-  mazey@5.7.3:
+  mazey@5.8.0:
     resolution:
       {
-        integrity: sha512-SdBLOtT+ml+2ZlywDr8IDsUVLv23pkecO7ghvEp37PuiClsk86PgnD6D/uIQEt50aiMgek+GPD9voPttto3DOQ==,
+        integrity: sha512-h9VpEgY6kjG0aUFoBLh+JWTMRHQLjRcLZmo8PWklhZsY0EjInwkXLAo1C+XoBSFhjSTkFPRLoduNqJgEo20XrA==,
       }
 
   mdurl@2.0.0:
@@ -11688,7 +11688,7 @@ snapshots:
 
   math-intrinsics@1.1.0: {}
 
-  mazey@5.7.3: {}
+  mazey@5.8.0: {}
 
   mdurl@2.0.0: {}
 
