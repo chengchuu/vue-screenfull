@@ -182,8 +182,8 @@ with strict checking in a clean consumer, not only the repository's `skipLibChec
 - Do not introduce module-load browser side effects that fail in Node-based tests or bundlers.
 
 Rollup owns production output. Preserve CJS, ESM, IIFE, source maps, declaration generation, the
-license banner, and minification controlled by `SCRIPTS_NPM_PACKAGE_DEBUG`. Babel helpers are
-bundled, and generated JavaScript must not acquire undeclared runtime helper imports.
+license banner, and minification. Babel helpers are bundled, and generated JavaScript must not
+acquire undeclared runtime helper imports.
 
 Keep `vue` and `mazey` external in CJS, ESM, and declaration outputs. The IIFE-specific Mazey
 resolver intentionally bundles Mazey from its declared module entry while leaving Vue external as

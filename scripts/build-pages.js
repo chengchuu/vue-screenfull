@@ -23,11 +23,16 @@ const {
   PWA_ICONS,
   PWA_NAME,
   PWA_SHORT_NAME,
+  PLAYGROUND_DESCRIPTION,
+  PLAYGROUND_TITLE,
+  PLAYGROUND_URL,
   SITE_BASE,
   SITE_URL,
   BACKGROUND_COLOR,
   THEME_COLOR,
   THEME_CONFIG,
+  ROOT_DESCRIPTION,
+  ROOT_TITLE,
 } = require("./site-config");
 
 const root = path.resolve(__dirname, "..");
@@ -52,6 +57,68 @@ function apiPageUrl(relativeFile) {
     .replaceAll(path.sep, "/")
     .replace(/index\.html$/, "");
   return new URL(route, API_URL).href;
+}
+
+function publicPageStructuredData(title, description, url) {
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: title,
+    description,
+    url,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "vue-screenfull",
+      url: SITE_URL,
+    },
+    about: {
+      "@type": "SoftwareSourceCode",
+      name: "vue-screenfull",
+      codeRepository: GITHUB_URL,
+    },
+  });
+}
+
+function transformPublicHtml(html, { title, description, url, assetPrefix }) {
+  const metadata = [
+    `<title>${escapeAttribute(title)}</title>`,
+    `<meta name="description" content="${escapeAttribute(description)}"/>`,
+    `<link rel="canonical" href="${url}"/>`,
+    `<link rel="icon" href="${assetPrefix}images/${FAVICON_FILE}" type="image/png"/>`,
+    `<link rel="manifest" href="${MANIFEST_URL}"/>`,
+    `<meta name="theme-color" content="${THEME_COLOR}" data-theme-color data-theme-color-light="${THEME_CONFIG.colorLight}" data-theme-color-dark="${THEME_CONFIG.colorDark}"/>`,
+    `<script src="${assetPrefix}assets/theme.js"></script>`,
+    `<link rel="stylesheet" href="${assetPrefix}theme.css"/>`,
+    '<meta property="og:type" content="website"/>',
+    '<meta property="og:site_name" content="vue-screenfull"/>',
+    `<meta property="og:title" content="${escapeAttribute(title)}"/>`,
+    `<meta property="og:description" content="${escapeAttribute(description)}"/>`,
+    `<meta property="og:url" content="${url}"/>`,
+    '<meta name="twitter:card" content="summary"/>',
+    `<meta name="twitter:title" content="${escapeAttribute(title)}"/>`,
+    `<meta name="twitter:description" content="${escapeAttribute(description)}"/>`,
+    `<script type="application/ld+json">${publicPageStructuredData(title, description, url)}</script>`,
+  ].join("");
+
+  return html
+    .replace(/<title>[\s\S]*?<\/title>/i, "")
+    .replace(/<meta name="description"[^>]*>/i, "")
+    .replace(/<link rel="canonical"[^>]*>/i, "")
+    .replace(/<link rel="icon"[^>]*>/i, "")
+    .replace(/<link rel="manifest"[^>]*>/i, "")
+    .replace(/<meta name="theme-color"[^>]*>/i, "")
+    .replace(
+      /<script\b[^>]*src=["'][^"']*assets\/theme\.js["'][^>]*><\/script>/i,
+      "",
+    )
+    .replace(/<link rel="stylesheet"[^>]*theme\.css[^>]*>/i, "")
+    .replace(/<meta property="og:[^"]+"[^>]*>/gi, "")
+    .replace(/<meta name="twitter:[^"]+"[^>]*>/gi, "")
+    .replace(
+      /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi,
+      "",
+    )
+    .replace("</head>", `${metadata}</head>`);
 }
 
 function transformApiHtml(html, relativeFile) {
@@ -225,6 +292,27 @@ async function buildPages() {
       rmSync(path.join(docs, name), { recursive: true, force: true });
   }
   cpSync(path.join(root, "dist-dev"), docs, { recursive: true });
+  writeFileSync(
+    path.join(docs, "index.html"),
+    transformPublicHtml(readFileSync(path.join(docs, "index.html"), "utf8"), {
+      title: ROOT_TITLE,
+      description: ROOT_DESCRIPTION,
+      url: SITE_URL,
+      assetPrefix: "./",
+    }),
+  );
+  writeFileSync(
+    path.join(docs, "playground", "index.html"),
+    transformPublicHtml(
+      readFileSync(path.join(docs, "playground", "index.html"), "utf8"),
+      {
+        title: PLAYGROUND_TITLE,
+        description: PLAYGROUND_DESCRIPTION,
+        url: PLAYGROUND_URL,
+        assetPrefix: "../",
+      },
+    ),
+  );
   rmSync(path.join(docs, "assets", "service-worker-source.js"), {
     force: true,
   });
@@ -285,5 +373,6 @@ module.exports = {
   buildPages,
   createManifest,
   fingerprintPages,
+  transformPublicHtml,
   transformApiHtml,
 };

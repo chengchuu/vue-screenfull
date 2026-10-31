@@ -17,7 +17,6 @@ const pkgName = pkg.name;
 const iifeName = pkgName.replace(/-/g, "_").toUpperCase();
 const pkgVersion =
   process.env.SCRIPTS_NPM_PACKAGE_VERSION || process.env.VERSION || "unknown";
-const debugMode = process.env.SCRIPTS_NPM_PACKAGE_DEBUG;
 const inputResolve = _resolve("../src/index.ts");
 const browserInputResolve = _resolve("../src/browser.ts");
 const browserIifeName = `${iifeName}_BROWSER`;
@@ -111,19 +110,17 @@ const globalDtsConf = {
   external: moduleExternal,
 };
 
-if (debugMode !== "open") {
-  iifePlugins.push(
-    // Add minification.
-    // https://github.com/TrySound/rollup-plugin-terser
-    terser({
-      format: {
-        // https://github.com/terser/terser#format-options
-        comments: /^!\n\s\*\svue-screenfull|[@#]__PURE__/, // Preserve license and tree-shaking annotations.
-        preserve_annotations: true,
-      },
-    }),
-  );
-}
+iifePlugins.push(
+  // Add minification.
+  // https://github.com/TrySound/rollup-plugin-terser
+  terser({
+    format: {
+      // https://github.com/terser/terser#format-options
+      comments: /^!\n\s\*\svue-screenfull|[@#]__PURE__/, // Preserve license and tree-shaking annotations.
+      preserve_annotations: true,
+    },
+  }),
+);
 
 // https://rollupjs.org/guide/en/
 export default [
