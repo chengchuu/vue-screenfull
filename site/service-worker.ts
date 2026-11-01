@@ -100,7 +100,3 @@ setCatchHandler(async ({ request }) => {
   }
   return Response.error();
 });
-
-worker.addEventListener("message", (event) => {
-  if (event.data?.type === "SKIP_WAITING") void worker.skipWaiting();
-});

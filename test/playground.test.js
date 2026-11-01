@@ -145,7 +145,6 @@ test("mobile full-width sizing is limited to playground actions", () => {
       <button class="theme-toggle" type="button">Theme</button>
     </header>
     <div id="app"><main><button class="playground-action" type="button">Action</button></main></div>
-    <aside class="pwa-update"><button type="button" data-pwa-update-now>Update now</button></aside>
   `;
 
   expect(document.querySelector(".playground-action").matches(selector)).toBe(
@@ -153,7 +152,4 @@ test("mobile full-width sizing is limited to playground actions", () => {
   );
   expect(document.querySelector(".nav-toggle").matches(selector)).toBe(false);
   expect(document.querySelector(".theme-toggle").matches(selector)).toBe(false);
-  expect(
-    document.querySelector("[data-pwa-update-now]").matches(selector),
-  ).toBe(false);
 });

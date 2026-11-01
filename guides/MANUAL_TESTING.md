@@ -59,7 +59,6 @@ themes. At each width:
    dimensions.
 2. Confirm the page, element, image, and video action buttons remain full-width through 480 pixels and
    return to their wider-layout sizing at 481 pixels.
-3. Remove `hidden` from `[data-pwa-update]` in developer tools. Confirm the message wraps normally,
-   **Update now** remains compact, and the notice stays within the viewport.
+3. Confirm no website-update notice or **Update now** control appears.
 4. Check portrait layout and confirm
    `document.documentElement.scrollWidth <= document.documentElement.clientWidth`.

@@ -3,7 +3,7 @@ import {
   registerServiceWorker,
   shouldRegisterServiceWorker,
   type ServiceWorkerConfig,
-} from "./pwa/updates";
+} from "./pwa/registration";
 
 declare const __SITE_PWA_CONFIG__: ServiceWorkerConfig;
 

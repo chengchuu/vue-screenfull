@@ -458,10 +458,10 @@ open that prompt automatically. In browsers without a custom prompt, use the bro
 iOS and iPadOS Safari, **Share → Add to Home Screen**. Installing the website is separate from the
 Fullscreen API and does not grant fullscreen capability.
 
-Worker updates remain user-controlled. When a new version is waiting, choose **Update now** to
-activate it and reload the current page once. On the playground, only this explicit action reloads
-an active session during an update. The generated worker includes a final-artifact version marker,
-so deployable website changes can be detected without precaching unversioned bundles.
+Updated workers activate through the browser's normal lifecycle after existing controlled tabs
+close. The website does not force activation or reload an open page. The generated worker includes
+a final-artifact version marker, so deployable website changes can be detected without precaching
+unversioned bundles.
 
 ## Development
 
